@@ -6,7 +6,7 @@ if [ "$#" -eq 0 ]; then
 else
   TODAY=---`date +%F`---
 
-  logFileName=/home/stevecos/Documents/technotes/history.txt
+  logFileName=/home/stevecos/Documents/techmore/history.txt
 
   echo $TODAY >>$logFileName
   history | tail -$1 >>$logFileName
