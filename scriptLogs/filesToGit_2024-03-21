@@ -1,0 +1,179 @@
+[master 203c93c] 2024-03-21_14:39:40
+ 8 files changed, 454 deletions(-)
+ delete mode 100644 TempFile
+ delete mode 100644 proj_proposal.aux
+ delete mode 100644 proj_proposal.bbl
+ delete mode 100644 proj_proposal.blg
+ delete mode 100644 proj_proposal.log
+ delete mode 100644 proj_proposal.pdf
+ delete mode 100644 proj_proposal.synctex.gz
+ delete mode 100644 proj_proposal.tex
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+Thu 21 Mar 2024 14:41:51 NZDT
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+Thu 21 Mar 2024 14:59:05 NZDT
+On branch master
+Your branch is up to date with 'origin/master'.
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	nul
+
+nothing added to commit but untracked files present (use "git add" to track)
+Thu 21 Mar 2024 14:59:38 NZDT
+Already up to date.
+[master 1f80117] 2024-03-21_14:59:38
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+ create mode 100644 nul
+Thu 21 Mar 2024 15:00:01 NZDT
+Already up to date.
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+Thu 21 Mar 2024 15:20:02 NZDT
+Already up to date.
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+Thu 21 Mar 2024 15:40:01 NZDT
+Already up to date.
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+Thu 21 Mar 2024 16:00:01 NZDT
+Already up to date.
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+Thu 21 Mar 2024 16:20:01 NZDT
+Already up to date.
+[master f22990e] 2024-03-21_16:20:01
+ 6 files changed, 102 insertions(+), 103 deletions(-)
+Thu 21 Mar 2024 16:40:01 NZDT
+Already up to date.
+[master e7567c1] 2024-03-21_16:40:01
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+Thu 21 Mar 2024 17:00:01 NZDT
+Already up to date.
+[master 95081b4] 2024-03-21_17:00:01
+ 4 files changed, 12 insertions(+), 5 deletions(-)
+Thu 21 Mar 2024 17:20:01 NZDT
+Already up to date.
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+Thu 21 Mar 2024 17:40:01 NZDT
+Already up to date.
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+Thu 21 Mar 2024 18:00:01 NZDT
+Already up to date.
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+Thu 21 Mar 2024 18:20:01 NZDT
+Already up to date.
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+Thu 21 Mar 2024 18:40:01 NZDT
+Already up to date.
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+Thu 21 Mar 2024 19:00:01 NZDT
+Already up to date.
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+Thu 21 Mar 2024 19:20:01 NZDT
+Already up to date.
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+Thu 21 Mar 2024 19:40:01 NZDT
+Already up to date.
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+Thu 21 Mar 2024 20:00:01 NZDT
+Already up to date.
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+Thu 21 Mar 2024 20:20:01 NZDT
+Already up to date.
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+Thu 21 Mar 2024 20:40:01 NZDT
+Already up to date.
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+Thu 21 Mar 2024 21:00:01 NZDT
+Already up to date.
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+Thu 21 Mar 2024 21:20:01 NZDT
+Already up to date.
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+Thu 21 Mar 2024 21:40:01 NZDT
+Already up to date.
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+Thu 21 Mar 2024 22:00:01 NZDT
+Already up to date.
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+Thu 21 Mar 2024 22:20:01 NZDT
+Already up to date.
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+Thu 21 Mar 2024 22:40:01 NZDT
+Already up to date.
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+Thu 21 Mar 2024 23:00:01 NZDT
+Updating 95081b4..65ebd1d
+[master 30396b5] 2024-03-21_23:00:01
+ 1 file changed, 6 insertions(+)

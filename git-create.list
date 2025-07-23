@@ -1,0 +1,7 @@
+git init
+git add *
+git commit -m "Initial Commit"
+git remote add origin ssh://git@gitlab.ecs.vuw.ac.nz/stevecos/MastersNotes.git
+git push --set-upstream origin master
+
+git push --set-upstream git@gitlab.ecs.vuw.ac.nz:stevecos/$(git rev-parse --show-toplevel | xargs basename).git $(git rev-parse --abbrev-ref HEAD)
