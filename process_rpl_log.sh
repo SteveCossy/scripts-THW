@@ -20,10 +20,15 @@ set -e
 set -o pipefail
 
 # --- Path Variables (Easier to change later) ---
-PYTHON_SCRIPT="/home/stevecos/Documents/references/parse_rpl_log_fixed.py"
-GRAPH_TEX_FILE="/home/stevecos/data/rpl_graph.tex"
-TABLE_TEX_FILE="/home/stevecos/data/rpl_table.tex"
-OUTPUT_FILE_PATH="/home/stevecos/data/"
+          BASE_DIR="$HOME"
+     PYTHON_SCRIPT="$BASE_DIR/Documents/references/parse_rpl_log_fixed.py"
+PYTHON_SCRIPT_LOGS="$BASE_DIR/Documents/references/parse_rpl_log_routes.py"
+    GRAPH_TEX_FILE="$BASE_DIR/data/rpl_graph.tex"
+    TABLE_TEX_FILE="$BASE_DIR/data/rpl_table.tex"
+  OUTPUT_FILE_PATH="$BASE_DIR/data/"
+       CONFIG_FILE="$BASE_DIR/contiki-ng/os/net/routing/rpl-classic/rpl-conf.h"
+        CONFIG_END=" head -59 "
+        CONFIG_NBR=" tail -8 "
 
 
 # --- Input Validation ---
@@ -56,22 +61,35 @@ else
 fi
 
 # --- Define Output Filenames ---
-TREE_FILE="${OUTPUT_FILE_PATH}text_${SUFFIX}.txt"
+    TREE_FILE="${OUTPUT_FILE_PATH}text_${SUFFIX}.txt"
+  ROUTES_FILE="${OUTPUT_FILE_PATH}routes_${SUFFIX}.txt"
 GRAPH_PDF_OUT="${OUTPUT_FILE_PATH}graph_${SUFFIX}.pdf"
 TABLE_PDF_OUT="${OUTPUT_FILE_PATH}table_${SUFFIX}.pdf"
 
+# --- Create temp OF file ---
+# pdftotext /home/stevecos/data/table_${SUFFIX}.pdf /tmp/table.txt
+# grep DAG /tmp/table.txt > /tmp/OFs.txt
 
 # --- Main Processing Steps ---
 echo "--> Step 1: Generating tree file: $TREE_FILE"
 # Run head and ls, redirecting output to the tree file.
 # The file is created/truncated by the first command (>), and appended to by the second (>>).
 head -1 "$FILE" > "$TREE_FILE"
-ls -l "$FILE" >> "$TREE_FILE"
+echo -n "    Run finished at " >> "$TREE_FILE"
+ls -l "$FILE" | awk '{print $7, $6, $8}' >> "$TREE_FILE"
+echo -n "Routing at " >> "$TREE_FILE"
+ls -l /home/stevecos/contiki-ng/os/net/routing/rpl-classic/rpl-conf.h | awk '{print $7, $6, $8}' >> "$TREE_FILE"
+cat -n $CONFIG_FILE | $CONFIG_END | $CONFIG_NBR >> "$TREE_FILE"
+# echo -n "Objective Functions: " >> "$TREE_FILE"
+# paste -s -d ' '  /tmp/OFs.txt >> "$TREE_FILE"
+echo -n "Edit options: nano +53 /home/stevecos/contiki-ng/os/net/routing/rpl-classic/rpl-conf.h" >> "$TREE_FILE"
 
-echo "--> Step 2: Running Python parser and appending to tree file"
+echo "--> Step 2a: Running Python parser and appending to text tree file"
 # Run the Python script, ensuring its output is appended to the same tree file.
 # PYTHONIOENCODING=UTF-8 is good practice if your log has special characters.
 PYTHONIOENCODING=UTF-8 python3 "$PYTHON_SCRIPT" "$FILE" >> "$TREE_FILE"
+echo "--> Step 2b: Running Python IPv6 parser and appending to route file"
+python3 "$PYTHON_SCRIPT_LOGS" "$FILE" >> "$ROUTES_FILE"
 
 echo "--> Step 3: Compiling LaTeX files to PDF"
 # The latexmk commands generate `rpl_graph.pdf` and `rpl_table.pdf` in the current directory.
@@ -89,7 +107,7 @@ echo "    - Created $TABLE_PDF_OUT"
 echo "--> Step 5: Opening PDFs for review"
 # Use okcular (or another PDF viewer) to open the final, timestamped files.
 # nohup 
-okular "$GRAPH_PDF_OUT" "$TABLE_PDF_OUT" "$TREE_FILE" > /dev/null 2>&1 &
+okular "$GRAPH_PDF_OUT" "$TABLE_PDF_OUT" "$TREE_FILE" "$ROUTES_FILE" > /dev/null 2>&1 &
 
 echo ""
 echo "--> Script finished successfully!"
