@@ -58,7 +58,8 @@ def parse_summary_file(filepath):
     
     # Iterate through lines to find MOP and OFs without complex regex
     for line in content.splitlines():
-        if "#define RPL_CONF_MOP" in line and not line.strip().startswith("5"):
+#        if "#define RPL_CONF_MOP" in line and not line.strip().startswith("//"):
+        if "#define RPL_CONF_MOP" in line and not "//" in line:
             data['mop'] = line.split()[-1]
         if "fd00" in line:
             of1 = line.split(":", 1)[1].strip()
