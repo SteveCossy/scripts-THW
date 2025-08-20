@@ -109,9 +109,9 @@ echo "    - Created $TABLE_PDF_OUT"
 # Use okcular (or another PDF viewer) to open the final, timestamped files.
 # nohup 
 # okular "$GRAPH_PDF_OUT" "$TABLE_PDF_OUT" "$TREE_FILE" "$ROUTES_FILE" > /dev/null 2>&1 &
-echo "--> Step 5: Adding the latest run to the summary file and opening that file
+echo "--> Step 5: Adding the latest run to the summary file and opening that file"
 /home/stevecos/scripts/summarize_run.py $TREE_FILE
-okular "$SUMMARY_FILE"
+okular "$SUMMARY_FILE" > /dev/null 2>&1 &
 
 echo ""
 echo "--> Script finished successfully!"
