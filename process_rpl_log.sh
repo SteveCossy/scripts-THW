@@ -29,6 +29,7 @@ PYTHON_SCRIPT_LOGS="$BASE_DIR/Documents/references/parse_rpl_log_routes.py"
        CONFIG_FILE="$BASE_DIR/contiki-ng/os/net/routing/rpl-classic/rpl-conf.h"
         CONFIG_END=" head -59 "
         CONFIG_NBR=" tail -8 "
+      SUMMARY_FILE="$BASE_DIR/data/SimSummary.pdf"
 
 
 # --- Input Validation ---
@@ -104,10 +105,13 @@ cp rpl_table.pdf "$TABLE_PDF_OUT"
 echo "    - Created $GRAPH_PDF_OUT"
 echo "    - Created $TABLE_PDF_OUT"
 
-echo "--> Step 5: Opening PDFs for review"
+# echo "--> Step 5: Opening PDFs for review"
 # Use okcular (or another PDF viewer) to open the final, timestamped files.
 # nohup 
-okular "$GRAPH_PDF_OUT" "$TABLE_PDF_OUT" "$TREE_FILE" "$ROUTES_FILE" > /dev/null 2>&1 &
+# okular "$GRAPH_PDF_OUT" "$TABLE_PDF_OUT" "$TREE_FILE" "$ROUTES_FILE" > /dev/null 2>&1 &
+echo "--> Step 5: Adding the latest run to the summary file and opening that file
+/home/stevecos/scripts/summarize_run.py $TREE_FILE
+okular "$SUMMARY_FILE"
 
 echo ""
 echo "--> Script finished successfully!"
