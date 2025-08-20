@@ -57,6 +57,8 @@ def parse_summary_file(filepath):
     finish_match = re.search(r"Run finished at .*?(\d{2}:\d{2})", content)
     
     # Iterate through lines to find MOP and OFs without complex regex
+    of1 = ""
+    of2 = ""
     for line in content.splitlines():
     #        if "#define RPL_CONF_MOP" in line and not line.strip().startswith("//"):
         if "#define RPL_CONF_MOP" in line and not "//" in line:
@@ -66,7 +68,8 @@ def parse_summary_file(filepath):
         if "fd00" in line:
             of1 = line.split(":", 1)[1].strip()
         if "fd02" in line:
-            data['ofs'] = of1 + line.split(":", 1)[1].strip()
+            of2 = line.split(":", 1)[1].strip()
+        data['ofs'] = of1 + of2
 
     if start_match:
         data['run_date'] = start_match.group(1)
