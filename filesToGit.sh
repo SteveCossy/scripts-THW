@@ -16,14 +16,14 @@ for DIR in $@
 do
    echo $DIR >>$logFileName
    cd $DIR
-   /usr/pkg/bin/git pull >>$logFileName 2>/dev/null
+   /usr/pkg/bin/git pull >>$logFileName 2>&1 
    /usr/pkg/bin/git add .
    if [[ $randomOneSearch -ef $DIR ]]
    then
       /usr/pkg/bin/git add /home/stevecos/Documents/MastersProposal/gitLogs/filesToGit*
    fi
    echo \*\*\*\* >>$logFileName
-   /usr/pkg/bin/git commit -m "$gitCommitName" >>$logFileName 2>/dev/null
-   /usr/pkg/bin/git push >>$logFileName 2>/dev/null
+   /usr/pkg/bin/git commit -m "$gitCommitName" >>$logFileName 2>&1 
+   /usr/pkg/bin/git push >>$logFileName 2>&1 
 done
 
