@@ -16,8 +16,12 @@ for DIR in $@
 do
    echo $DIR >>$logFileName
    cd $DIR
-   /usr/pkg/bin/git pull >>$logFileName 2>&1 
-   /usr/pkg/bin/git add .
+   if [ -f ".gitattributes" ];
+   then # This is an LFS file
+      /usr/pkg/bin/git add * >>$logFileName 2>&1
+   fi
+   /usr/pkg/bin/git pull  >>$logFileName 2>&1 
+   /usr/pkg/bin/git add . >>$logFileName 2>&1 
    if [[ $randomOneSearch -ef $DIR ]]
    then
       /usr/pkg/bin/git add /home/stevecos/Documents/MastersProposal/gitLogs/filesToGit*
