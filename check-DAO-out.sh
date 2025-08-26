@@ -1,6 +1,6 @@
 # Checking contents of log files
 
-FUNCTION="dao_input_nonstoring()"
+FUNCTION="dao_output_target()"
 SEARCH="Sending a DAO with"
 TEST1a="fd00"
 TEST1b="fd02"
@@ -19,8 +19,8 @@ echo -n "$SEARCH with $TEST1a lines: "
 grep -n "$SEARCH" $1 | grep "$TEST1a" |  wc -l 
 echo -n "$SEARCH with $TEST1b lines: "
 grep -n "$SEARCH" $1 | grep "$TEST1b" |  wc -l
-echo -n "$SEARCH with $TEST1a & not $TEST2a lines: "
+echo -n "$SEARCH with $TEST1a & not $TEST2b lines: "
 grep -n "$SEARCH" $1 | grep "$TEST1a" | grep $TEST2b | wc -l
-echo -n "$SEARCH with $TEST1b & not $TEST2a lines: "
-grep -n "$SEARCH" $1 | grep "$TEST1b" | grep $TEST2a | wc -l
+#echo -n "$SEARCH with $TEST1b & $TEST2a lines: "
+#grep -n "$SEARCH" $1 | grep "$TEST1b" | grep $TEST2a | wc -l
 
