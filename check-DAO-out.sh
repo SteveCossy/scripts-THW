@@ -19,7 +19,7 @@ echo -n "$SEARCH with $TEST1a lines: "
 grep -n "$SEARCH" $1 | grep "$TEST1a" |  wc -l 
 echo -n "$SEARCH with $TEST1b lines: "
 grep -n "$SEARCH" $1 | grep "$TEST1b" |  wc -l
-echo -n "$SEARCH with $TEST1a & not $TEST2b lines: "
+echo -n "$SEARCH with $TEST1a & $TEST2b lines: "
 grep -n "$SEARCH" $1 | grep "$TEST1a" | grep $TEST2b | wc -l
 #echo -n "$SEARCH with $TEST1b & $TEST2a lines: "
 #grep -n "$SEARCH" $1 | grep "$TEST1b" | grep $TEST2a | wc -l
