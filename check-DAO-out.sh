@@ -7,6 +7,9 @@ TEST1b="fd02"
 TEST2a="fd00"
 TEST2b="fd02"
 
+#FUNCTION="dio_input"
+#SEARCH="Processing a DIO out"
+
 #FUNCTION="dao_input_nonstoring()"
 #SEARCH="DAO lifetime:"
 #TEST1a="prefix: fd00"
