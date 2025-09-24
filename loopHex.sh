@@ -17,8 +17,9 @@ START_DEC=$1
 END_DEC=$2
 shift 2 # Removes the first two arguments, leaving only the command.
 COMMAND=("$@") # Store the remaining arguments (the command) in an array.
+echo $COMMAND # Debug
 
-KEYWORD="āe" # Define our special keyword.
+KEYWORD="ae" # Define our special keyword.
 
 echo "--- Running command for hex range ${START_DEC}-${END_DEC} ---"
 
