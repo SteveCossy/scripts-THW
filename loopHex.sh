@@ -4,11 +4,13 @@
 # command for each iteration and substituting a keyword.
 # commissioned by Steve Cosgrove 25/09/2025
 
+KEYWORD="ae" # Define our special keyword.
+
 # --- Input Validation ---
 if [ "$#" -lt 3 ]; then
   echo "Usage: $0 <start_dec> <end_dec> <command_with_keyword...>"
   echo "Example: $0 1 24 echo Processing node āe"
-  echo "  The keyword 'āe' will be replaced with the hex loop variable."
+  echo "  The keyword '$KEYWORD' will be replaced with the hex loop variable."
   exit 1
 fi
 
@@ -18,8 +20,6 @@ END_DEC=$2
 shift 2 # Removes the first two arguments, leaving only the command.
 COMMAND=("$@") # Store the remaining arguments (the command) in an array.
 echo $COMMAND # Debug
-
-KEYWORD="ae" # Define our special keyword.
 
 echo "--- Running command for hex range ${START_DEC}-${END_DEC} ---"
 
