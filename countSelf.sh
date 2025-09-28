@@ -10,7 +10,7 @@ for FILE in /home/stevecos/Cooja/10-RPL-202509*
       do for DAGi in 0 2
          do 
          declare NBR=$OFi$DAGi
-         echo -n "$OFi fd0$DAGi = ${!NBR}, "
+         echo -n "$OFi+fd0$DAGi = ${!NBR}, "
       done
    done
    echo
