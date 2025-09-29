@@ -1,4 +1,4 @@
-for FILE in /home/stevecos/Cooja/10-RPL-202509*
+for FILE in /local/scratch/stevecos/logs/*
    do
    echo -n "$FILE: "
    for OF in OF0 MRHOF
