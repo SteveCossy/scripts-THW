@@ -4,6 +4,7 @@
 if [ "$#" -ne 3 ]; then
     echo "Usage: $0 <filename> <block_size> <grep_pattern>"
     echo "Example: $0 my_log.log 20000 'ERROR|WARNING'"
+    echo "Not $@"
     exit 1
 fi
 
@@ -13,7 +14,6 @@ grep_pattern="$3"
 start_time=`date +%x-%X`
 temp_dir="/local/scratch/stevecos/"
 temp_file=".current_block_temp.log"
-temp_fullpath=$temp_dir$temp_file
 
 # Validate block_size is a positive integer
 if ! [[ "$block_size" =~ ^[0-9]+$ ]] || [ "$block_size" -eq 0 ]; then
@@ -26,6 +26,9 @@ if [ ! -f "$filename" ]; then
     echo "Error: File '$filename' not found."
     exit 1
 fi
+
+temp_fullpath=$temp_dir$temp_file
+mkdir -p $temp_dir
 
 current_line=0
 total_matches=0
@@ -63,5 +66,5 @@ fi
 
 echo "--------------------------------------------------------------------------------"
 echo "Analysis complete. Final total matches: $total_matches"
-
+echo "Analysis started at $start_time, finished at `date +%X`."
 exit 0
