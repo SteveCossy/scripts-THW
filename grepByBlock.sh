@@ -1,19 +1,37 @@
 #!/bin/bash
 
+# --- Script Configuration ---
+# Stop the script if any command fails
+#set -e
+# Ensure that a pipeline command fails if any of its components fail
+#set -o pipefail
+
 # Check if the correct number of arguments is provided
-if [ "$#" -ne 3 ]; then
+if [ "$#" -lt 3 ]; then
     echo "Usage: $0 <filename> <block_size> <grep_pattern>"
     echo "Example: $0 my_log.log 20000 'ERROR|WARNING'"
     echo "Not $@"
     exit 1
 fi
 
-filename="$1"
-block_size="$2"
-grep_pattern="$3"
 start_time=`date +%x-%X`
 temp_dir="/local/scratch/stevecos/"
 temp_file=".current_block_temp.log"
+
+filename="$1"
+block_size="$2"
+echo $@
+
+if [ "$3" = "-s" ]; then
+    saveFiles=true
+    temp_dir="$temp_dir/grepByBlock/"
+    temp_file=grepByBlock-`date +%Y%m%d_%H%M`-
+    temp_count=1
+    echo "Saving output files to $temp_dir$temp_file$temp_count."
+    shift
+fi
+
+grep_pattern="$3"
 
 # Validate block_size is a positive integer
 if ! [[ "$block_size" =~ ^[0-9]+$ ]] || [ "$block_size" -eq 0 ]; then
@@ -27,7 +45,7 @@ if [ ! -f "$filename" ]; then
     exit 1
 fi
 
-temp_fullpath=$temp_dir$temp_file
+temp_fullpath=$temp_dir$temp_file$temp_count
 mkdir -p $temp_dir
 
 current_line=0
@@ -35,10 +53,11 @@ total_matches=0
 block_number=0
 
 echo "At $start_time, starting analysis of '$filename' with block size '$block_size' and pattern '$grep_pattern'..."
-echo "---------------------------------------------------------------------------------------------------------"
+echo "--------------------------------------------------------------------------------"
 
 # Loop through the file in blocks
 while IFS= read -r line; do
+
     ((current_line++))
     echo "$line" >> $temp_fullpath # Write line to a temporary file for the current block
 
@@ -49,7 +68,12 @@ while IFS= read -r line; do
         total_matches=$((total_matches + block_matches))
 
         echo "At `date +%X`, Block $((block_number * block_size / block_size)) (lines $(( (block_number - 1) * block_size + 1 )) - $((block_number * block_size))): Matches = $block_matches, Running Total = $total_matches"
-        rm $temp_fullpath # Clear the temporary file for the next block
+        if [ $saveFiles=true ]; then # increment the count for saved files
+            ((temp_count++))
+            temp_fullpath=$temp_dir$temp_file$temp_count
+        else
+            rm $temp_fullpath # Clear the temporary file for the next block
+        fi
     fi
 done < "$filename"
 
@@ -64,7 +88,11 @@ if [ -f $temp_fullpath ]; then
     rm $temp_fullpath
 fi
 
-echo "--------------------------------------------------------------------------------"
-echo "Analysis complete. Final total matches: $total_matches"
-echo "Analysis started at $start_time, finished at `date +%X`."
-exit 0
+echo    "--------------------------------------------------------------------------------"
+echo    "Analysis complete. Final total matches: $total_matches"
+echo -n "Analysis started at $start_time, finished at `date +%X`"
+if [ $saveFiles=true ]; then 
+    echo " final block saved in $temp_fullpath."
+else
+    echo "."
+fi
