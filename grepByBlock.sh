@@ -16,7 +16,7 @@ fi
 
 start_time=`date +%x-%X`
 temp_dir="/local/scratch/stevecos/"
-temp_file=".current_block_temp.log"
+temp_file=".current_block_temp.txt"
 
 filename="$1"
 block_size="$2"
@@ -25,9 +25,9 @@ echo $@
 if [ "$3" = "-s" ]; then
     saveFiles=true
     temp_dir="$temp_dir/grepByBlock/"
-    temp_file=grepByBlock-`date +%Y%m%d_%H%M`-
+    temp_file=grepByBlock-`date +%Y%m%d%H%M%S`-
     temp_count=1
-    echo "Saving output files to $temp_dir$temp_file$temp_count."
+    echo "Saving output files to $temp_dir$temp_file$temp_count.txt"
     shift
 fi
 
@@ -70,7 +70,7 @@ while IFS= read -r line; do
         echo "At `date +%X`, Block $((block_number * block_size / block_size)) (lines $(( (block_number - 1) * block_size + 1 )) - $((block_number * block_size))): Matches = $block_matches, Running Total = $total_matches"
         if [ $saveFiles=true ]; then # increment the count for saved files
             ((temp_count++))
-            temp_fullpath=$temp_dir$temp_file$temp_count
+            temp_fullpath=$temp_dir$temp_file$temp_count.txt
         else
             rm $temp_fullpath # Clear the temporary file for the next block
         fi
