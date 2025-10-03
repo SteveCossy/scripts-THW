@@ -45,7 +45,7 @@ if [ ! -f "$filename" ]; then
     exit 1
 fi
 
-temp_fullpath=$temp_dir$temp_file$temp_count
+temp_fullpath=$temp_dir$temp_file$temp_count.txt 
 mkdir -p $temp_dir
 
 current_line=0
