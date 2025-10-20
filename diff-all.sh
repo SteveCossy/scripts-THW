@@ -22,11 +22,11 @@ find "$DEVELOPED_DIR" -type f -exec grep -lE "hton" {} + | grep -v "rpl-lite" | 
 
     # Check if the original file exists before trying to diff
     if [ -f "$ORIGINAL_FILE" ]; then
-        echo -n "--- Diffing: $RELATIVE_PATH ---"
+        echo -n "--- Diffing: $RELATIVE_PATH --- "
         if diff -q "$ORIGINAL_FILE" "$DEVELOPED_FILE" >/dev/null; then
-           echo " - same"
+           echo "same"
         else
-           echo Showing differences in kdiff3 
+           echo "Showing differences in kdiff3"
            kdiff3 "$ORIGINAL_FILE" "$DEVELOPED_FILE"  > /dev/null 2>&1 &
     #    echo "" # Add a newline for better readability between diffs
          fi
