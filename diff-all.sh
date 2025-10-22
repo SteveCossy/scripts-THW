@@ -50,7 +50,7 @@ if [ -n "$1" ]; then
         echo "ERROR: One or both specified files do not exist."
         echo "Developed: $PARAM_DEVELOPED_FILE (Exists: $([ -f "$PARAM_DEVELOPED_FILE" ] && echo "yes" || echo "no"))"
         echo "Original:  $PARAM_ORIGINAL_FILE (Exists: $([ -f "$PARAM_ORIGINAL_FILE" ] && echo "yes" || echo "no"))"
-        echo "Note that the path supplied by be relative from: $PARAM_DEVELOPED_FILE"
+        echo "Note that the path supplied by be relative from: $DEVELOPED_DIR"
         echo "Exiting."
         exit 1
     fi
