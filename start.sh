@@ -2,7 +2,7 @@
 # Check whether required process is running. Start if not
 # 29 October 2025
 
-if [ "$HOSTNAME" ="$1.ecs.vuw.ac.nz" ] ; then
+if [ "$HOSTNAME" = "$1.ecs.vuw.ac.nz" ] ; then
     PROCESS_NAME="vncviewer"
     COMMAND_TO_RUN="echo $1 not running" # Replace with the command to execute
     if ! pgrep -x "$PROCESS_NAME" > /dev/null; then
