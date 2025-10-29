@@ -2,7 +2,10 @@
 # Check whether required process is running. Start if not
 # 29 October 2025
 
-if [ "$HOSTNAME" = "$1.ecs.vuw.ac.nz" ] ; then
+# Assume we want to run startup apps if no parameter supplied
+if [ "$1" = "" ] ; then hostname=${HOSTNAME%%.*} ; else hostname=$1 ; fi
+
+if [ "$HOSTNAME" = "$hostname.ecs.vuw.ac.nz" ] ; then
     PROCESS_NAME="vncviewer"
     COMMAND_TO_RUN="echo $1 not running" # Replace with the command to execute
     if ! pgrep -x "$PROCESS_NAME" > /dev/null; then
