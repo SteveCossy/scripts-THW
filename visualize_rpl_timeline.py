@@ -74,25 +74,20 @@ def generate_tikz_graph(topology, instance_id):
     tikz = [
         r"\begin{tikzpicture}",
         r"\graph [layered layout, sibling distance=8mm, level distance=15mm] {",
-        f"    // Root Node Definition",
+        f"    % Root Node Definition",   # <--- CHANGED // to %
         f"    {root_node} [root_style, as={root_node}];"
     ]
     
-    # Add nodes and edges
-    # We need to handle cases where nodes are disconnected or form loops
     nodes_in_graph = set([root_node])
     edges = []
     
-    # Extract edges for this instance
     inst_topology = topology.get(instance_id, {})
     
     for child, parent in inst_topology.items():
-        # Sanitize IDs (remove leading zeros if necessary)
         child = str(int(child)) 
         parent = str(int(parent))
         
         edge_style = "edge_style"
-        # Simple loop detection (A->B and B->A) for styling
         if inst_topology.get(parent) == child:
              edge_style = "loop_style"
 
@@ -100,16 +95,14 @@ def generate_tikz_graph(topology, instance_id):
         nodes_in_graph.add(child)
         nodes_in_graph.add(parent)
 
-    # Define non-root nodes style
-    tikz.append("    // Node Styles")
+    tikz.append("    % Node Styles")     # <--- CHANGED // to %
     for node in nodes_in_graph:
         if node != root_node:
             tikz.append(f"    {node} [node_style, as={node}];")
 
-    # Add Edges
     tikz.extend(edges)
     
-    tikz.append("};") # End graph
+    tikz.append("};") 
     tikz.append(r"\end{tikzpicture}")
     return "\n".join(tikz)
 
