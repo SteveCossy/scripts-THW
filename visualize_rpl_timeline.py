@@ -172,7 +172,7 @@ def process_log_file(logfile_path):
                         if current_hash != network.last_written_topology:
                             
                             # --- Generate Latex Page ---
-                            latex_content.append(r"\clearpage")
+#                            latex_content.append(r"\clearpage") # Don't want a new page for per section
                             latex_content.append(f"\\section*{{Timestamp: {current_timestamp}}}")
                             latex_content.append(r"\begin{center}")
                             
