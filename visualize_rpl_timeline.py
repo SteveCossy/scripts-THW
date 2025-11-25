@@ -17,7 +17,7 @@ OUTPUT_TEX_FILE = "RPL_Timeline.tex"
 def get_latex_preamble():
     return r"""
 \documentclass[a4paper, portrait]{article}
-\usepackage[margin=1cm]{geometry}
+\usepackage[margin=1cm, includefoot]{geometry}
 \usepackage{fontspec}
 \setmainfont{Latin Modern Roman}
 \usepackage{tikz}
@@ -91,7 +91,7 @@ def generate_tikz_graph(topology, instance_id):
         if inst_topology.get(parent) == child:
              edge_style = "loop_style"
 
-        edges.append(f"    {parent} -> [{edge_style}] {child};")
+        edges.append(f"    {parent} -> [{edge_style}, Stealth-] {child};")
         nodes_in_graph.add(child)
         nodes_in_graph.add(parent)
 
