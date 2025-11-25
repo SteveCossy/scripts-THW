@@ -3,6 +3,7 @@ import sys
 import re
 from pathlib import Path
 from collections import defaultdict
+from datetime import datetime
 
 # --- Configuration ---
 # Map Instance IDs to recognizable names/roots based on your context
@@ -122,6 +123,12 @@ def process_log_file(logfile_path):
     with open(logfile_path, 'r', encoding='utf-8') as f:
         
         latex_content = [get_latex_preamble()]
+
+        # Add filename and Timestamp in header
+        gen_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        # Escaping underscores in filename to prevent LaTeX errors
+        safe_filename = logfile_path.name.replace("_", r"\_")
+        latex_content.append(f"\\noindent{{\\Large \\textbf{{Log Analysis:}} {safe_filename}}} \\hfill \\small{{Generated: {gen_time}}} \\\\ \\hrule \\vspace{{1cm}}")
         
         current_timestamp = ""
         current_node = None
