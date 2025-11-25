@@ -16,7 +16,7 @@ OUTPUT_TEX_FILE = "RPL_Timeline.tex"
 
 def get_latex_preamble():
     return r"""
-\documentclass[a4paper, landscape]{article}
+\documentclass[a4paper, portrait]{article}
 \usepackage[margin=1cm]{geometry}
 \usepackage{fontspec}
 \setmainfont{Latin Modern Roman}
