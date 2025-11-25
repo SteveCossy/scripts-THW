@@ -15,10 +15,15 @@ INSTANCE_MAP = {
 # Output filename
 OUTPUT_TEX_FILE = "RPL_Timeline.tex"
 
-def get_latex_preamble():
+def get_latex_preamble(log_filename, generation_time):
+
+    # Escape underscores for LaTeX
+    safe_filename = log_filename.replace("_", r"\_")
+
     return r"""
 \documentclass[a4paper, portrait]{article}
-\usepackage[margin=1cm, includefoot]{geometry}
+\usepackage[margin=1cm, includefoot, top=2.5cm, headheight=15pt]{geometry}
+\usepackage{fancyhdr}
 \usepackage{fontspec}
 \setmainfont{Latin Modern Roman}
 \usepackage{tikz}
@@ -127,8 +132,12 @@ def process_log_file(logfile_path):
         # Add filename and Timestamp in header
         gen_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         # Escaping underscores in filename to prevent LaTeX errors
-        safe_filename = logfile_path.name.replace("_", r"\_")
-        latex_content.append(f"\\noindent{{\\Large \\textbf{{Log Analysis:}} {safe_filename}}} \\hfill \\small{{Generated: {gen_time}}} \\\\ \\hrule \\vspace{{1cm}}")
+#        safe_filename = logfile_path.name.replace("_", r"\_")
+#        latex_content.append(f"\\noindent{{\\Large \\textbf{{Log Analysis:}} {safe_filename}}} \\hfill \\small{{Generated: {gen_time}}} \\\\ \\hrule \\vspace{{1cm}}")
+
+        # Moved details to header
+        gen_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        latex_content = [get_latex_preamble(logfile_path.name, gen_time)]
         
         current_timestamp = ""
         current_node = None
