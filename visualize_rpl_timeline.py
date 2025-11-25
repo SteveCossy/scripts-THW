@@ -30,6 +30,14 @@ def get_latex_preamble(log_filename, generation_time):
 \usetikzlibrary{graphs, graphdrawing, arrows.meta}
 \usegdlibrary{layered, trees} % Requires LuaLaTeX
 
+% Header Configuration
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\textbf{Log Analysis:} """ + safe_filename + r"""}
+\rhead{\small Generated: """ + generation_time + r"""}
+\rfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
 % Visual Styles
 \tikzset{
     node_style/.style={circle, draw, fill=white, minimum size=0.8cm, font=\bfseries},
@@ -127,7 +135,7 @@ def process_log_file(logfile_path):
 
     with open(logfile_path, 'r', encoding='utf-8') as f:
         
-        latex_content = [get_latex_preamble()]
+        #latex_content = [get_latex_preamble()]
 
         # Add filename and Timestamp in header
         gen_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -136,7 +144,6 @@ def process_log_file(logfile_path):
 #        latex_content.append(f"\\noindent{{\\Large \\textbf{{Log Analysis:}} {safe_filename}}} \\hfill \\small{{Generated: {gen_time}}} \\\\ \\hrule \\vspace{{1cm}}")
 
         # Moved details to header
-        gen_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         latex_content = [get_latex_preamble(logfile_path.name, gen_time)]
         
         current_timestamp = ""
