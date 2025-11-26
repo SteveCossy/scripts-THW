@@ -3,13 +3,13 @@
 # ==============================================================================
 # process_rpl_log.sh
 #
-# Processes a specific RPL log file to generate analysis and PDF reports.
+# Processes a specific RPL log file to generate analysis and PDF
+#   reports in timeline format.
 #
 # Usage:
-#   ./process_rpl_log.sh <path/to/logfile.txt>
+#   ./process_timeline.sh <path/to/logfile.txt>
 #
-# Example:
-#   ./process_rpl_log.sh 10-RPL-20250702210825.txt
+# 26 November 2025
 #
 # ==============================================================================
 
@@ -21,15 +21,17 @@ set -o pipefail
 
 # --- Path Variables (Easier to change later) ---
           BASE_DIR="$HOME"
-     PYTHON_SCRIPT="$BASE_DIR/Documents/references/parse_rpl_log_fixed.py"
-PYTHON_SCRIPT_LOGS="$BASE_DIR/Documents/references/parse_rpl_log_routes.py"
-    GRAPH_TEX_FILE="$BASE_DIR/data/rpl_graph.tex"
-    TABLE_TEX_FILE="$BASE_DIR/data/rpl_table.tex"
-  OUTPUT_FILE_PATH="$BASE_DIR/data/"
-       CONFIG_FILE="$BASE_DIR/contiki-ng/os/net/routing/rpl-classic/rpl-conf.h"
-        CONFIG_END=" head -59 "
-        CONFIG_NBR=" tail -8 "
-      SUMMARY_FILE="$BASE_DIR/data/SimSummary.pdf"
+       WORKING_DIR="$BASE_DIR/data/timeline"
+     PYTHON_SCRIPT="$BASE_DIR/Documents/scripts/process_timeline.sh"
+PYTHON_SCRIPT_LOGS="$BASE_DIR/Documents/scripts/process_timeline.log"
+#     GRAPH_TEX_FILE="$BASE_DIR/data/rpl_graph.tex"
+#     TABLE_TEX_FILE="$BASE_DIR/data/rpl_table.tex"
+  OUTPUT_FILE_PATH="$BASE_DIR/data/timeline"
+#        CONFIG_FILE="$BASE_DIR/contiki-ng/os/net/routing/rpl-classic/rpl-conf.h"
+#         CONFIG_END=" head -59 "
+#         CONFIG_NBR=" tail -8 "
+      SUMMARY_FILE="$BASE_DIR/data/timeline/RPL_timeline"
+  SUMMARY_FILE_TEX="$SUMMARY_FILE.tex"
 
 
 # --- Input Validation ---
@@ -55,6 +57,7 @@ echo "--> Processing file: $FILE"
 if [[ "$FILE" =~ ([0-9]{14}) ]]; then
     SUFFIX="${BASH_REMATCH[1]}"
     echo "--> Extracted date suffix: $SUFFIX"
+    $SUMMARY_FILE_PDF="$SUMMARY_FILE-$SUFFIX.pdf"
 else
     echo "Error: Filename '$FILE' does not contain a valid YYYYMMDDHHMMSS timestamp."
     echo "       Expected format example: '...-20250702210825.txt'"
@@ -62,56 +65,31 @@ else
 fi
 
 # --- Define Output Filenames ---
-    TREE_FILE="${OUTPUT_FILE_PATH}text_${SUFFIX}.txt"
-  ROUTES_FILE="${OUTPUT_FILE_PATH}routes_${SUFFIX}.txt"
-GRAPH_PDF_OUT="${OUTPUT_FILE_PATH}graph_${SUFFIX}.pdf"
-TABLE_PDF_OUT="${OUTPUT_FILE_PATH}table_${SUFFIX}.pdf"
+#     TREE_FILE="${OUTPUT_FILE_PATH}text_${SUFFIX}.txt"
+#   ROUTES_FILE="${OUTPUT_FILE_PATH}routes_${SUFFIX}.txt"
+# GRAPH_PDF_OUT="${OUTPUT_FILE_PATH}graph_${SUFFIX}.pdf"
+# TABLE_PDF_OUT="${OUTPUT_FILE_PATH}table_${SUFFIX}.pdf"
 
 # --- Create temp OF file ---
 # pdftotext /home/stevecos/data/table_${SUFFIX}.pdf /tmp/table.txt
 # grep DAG /tmp/table.txt > /tmp/OFs.txt
 
 # --- Main Processing Steps ---
-echo "--> Step 1: Generating tree file: $TREE_FILE"
-# Run head and ls, redirecting output to the tree file.
-# The file is created/truncated by the first command (>), and appended to by the second (>>).
-head -1 "$FILE" > "$TREE_FILE"
-echo -n "    Run finished at " >> "$TREE_FILE"
-ls -l "$FILE" | awk '{print $7, $6, $8}' >> "$TREE_FILE"
-echo -n "Routing at " >> "$TREE_FILE"
-ls -l /home/stevecos/contiki-ng/os/net/routing/rpl-classic/rpl-conf.h | awk '{print $7, $6, $8}' >> "$TREE_FILE"
-cat -n $CONFIG_FILE | $CONFIG_END | $CONFIG_NBR >> "$TREE_FILE"
-# echo -n "Objective Functions: " >> "$TREE_FILE"
-# paste -s -d ' '  /tmp/OFs.txt >> "$TREE_FILE"
-echo -n "Edit options: nano +53 /home/stevecos/contiki-ng/os/net/routing/rpl-classic/rpl-conf.h" >> "$TREE_FILE"
+echo "--> Step 1: Generating tex file $SUMMARY_FILE_TEX"
+cd $WORKING_DIR
+PYTHONIOENCODING=UTF-8 python3 "$PYTHON_SCRIPT" "$FILE"
 
-echo "--> Step 2a: Running Python parser and appending to text tree file"
-# Run the Python script, ensuring its output is appended to the same tree file.
-# PYTHONIOENCODING=UTF-8 is good practice if your log has special characters.
-PYTHONIOENCODING=UTF-8 python3 "$PYTHON_SCRIPT" "$FILE" >> "$TREE_FILE"
-echo "--> Step 2b: Running Python IPv6 parser and appending to route file"
-python3 "$PYTHON_SCRIPT_LOGS" "$FILE" >> "$ROUTES_FILE"
-
-echo "--> Step 3: Compiling LaTeX files to PDF"
+echo "--> Step 2: Compiling LaTeX files to PDF"
 # The latexmk commands generate `rpl_graph.pdf` and `rpl_table.pdf` in the current directory.
-latexmk -lualatex "$GRAPH_TEX_FILE"
-latexmk -pdflatex "$TABLE_TEX_FILE"
+latexmk -lualatex "$SUMMARY_FILE_TEX"
 
-echo "--> Step 4: Copying and renaming generated PDFs"
+echo "--> Step 3: Copying and renaming generated PDF to $SUMMARY_FILE_PDF"
 # Copy the freshly made PDFs to new names using the extracted suffix.
 # Note: I removed the redundant `cp rpl_*.pdf ...` as the next two lines are more specific and safer.
-cp rpl_graph.pdf "$GRAPH_PDF_OUT"
-cp rpl_table.pdf "$TABLE_PDF_OUT"
-echo "    - Created $GRAPH_PDF_OUT"
-echo "    - Created $TABLE_PDF_OUT"
+cp "$SUMMARY_FILE.pdf" "$SUMMARY_FILE_PDF"
 
-# echo "--> Step 5: Opening PDFs for review"
-# Use okcular (or another PDF viewer) to open the final, timestamped files.
-# nohup 
-# okular "$GRAPH_PDF_OUT" "$TABLE_PDF_OUT" "$TREE_FILE" "$ROUTES_FILE" > /dev/null 2>&1 &
-echo "--> Step 5: Adding the latest run to the summary file and opening that file"
-/home/stevecos/scripts/summarize_run.py $TREE_FILE
-okular "$SUMMARY_FILE" > /dev/null 2>&1 &
+echo "--> Step 5: Opening PDF for review"
+okular "$SUMMARY_FILE_PDF" > /dev/null 2>&1 &
 
 echo ""
 echo "--> Script finished successfully!"
