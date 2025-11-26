@@ -22,15 +22,15 @@ set -o pipefail
 # --- Path Variables (Easier to change later) ---
           BASE_DIR="$HOME"
        WORKING_DIR="$BASE_DIR/data/timeline"
-     PYTHON_SCRIPT="$BASE_DIR/Documents/scripts/process_timeline.sh"
-PYTHON_SCRIPT_LOGS="$BASE_DIR/Documents/scripts/process_timeline.log"
+     PYTHON_SCRIPT="$BASE_DIR/scripts/visualize_rpl_timeline.py"
+#PYTHON_SCRIPT_LOGS="$BASE_DIR/scripts/process_timeline.log"
 #     GRAPH_TEX_FILE="$BASE_DIR/data/rpl_graph.tex"
 #     TABLE_TEX_FILE="$BASE_DIR/data/rpl_table.tex"
   OUTPUT_FILE_PATH="$BASE_DIR/data/timeline"
 #        CONFIG_FILE="$BASE_DIR/contiki-ng/os/net/routing/rpl-classic/rpl-conf.h"
 #         CONFIG_END=" head -59 "
 #         CONFIG_NBR=" tail -8 "
-      SUMMARY_FILE="$BASE_DIR/data/timeline/RPL_timeline"
+      SUMMARY_FILE="$BASE_DIR/data/timeline/RPL_Timeline"
   SUMMARY_FILE_TEX="$SUMMARY_FILE.tex"
 
 
@@ -57,7 +57,7 @@ echo "--> Processing file: $FILE"
 if [[ "$FILE" =~ ([0-9]{14}) ]]; then
     SUFFIX="${BASH_REMATCH[1]}"
     echo "--> Extracted date suffix: $SUFFIX"
-    $SUMMARY_FILE_PDF="$SUMMARY_FILE-$SUFFIX.pdf"
+    SUMMARY_FILE_PDF="$SUMMARY_FILE-$SUFFIX.pdf"
 else
     echo "Error: Filename '$FILE' does not contain a valid YYYYMMDDHHMMSS timestamp."
     echo "       Expected format example: '...-20250702210825.txt'"
