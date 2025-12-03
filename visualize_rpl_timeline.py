@@ -105,7 +105,7 @@ def generate_tikz_graph(topology, instance_id):
         if inst_topology.get(parent) == child:
              edge_style = "loop_style"
 
-        edges.append(f"    {parent} -> [{edge_style}, Stealth-] {child};")
+        edges.append(f"    {parent} <- [{edge_style}, Stealth-] {child};")
         nodes_in_graph.add(child)
         nodes_in_graph.add(parent)
 
