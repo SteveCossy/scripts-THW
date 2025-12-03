@@ -46,6 +46,7 @@ if [ -n "$1" ]; then
     if [ -f "$PARAM_DEVELOPED_FILE" ] && [ -f "$PARAM_ORIGINAL_FILE" ]; then
         echo "Both files exist. Performing direct comparison."
         compare_and_diff "$PARAM_ORIGINAL_FILE" "$PARAM_DEVELOPED_FILE" "$PARAM_RELATIVE_PATH"
+        echo "Comparison complete."
     else
         echo "ERROR: One or both specified files do not exist."
         echo "Developed: $PARAM_DEVELOPED_FILE (Exists: $([ -f "$PARAM_DEVELOPED_FILE" ] && echo "yes" || echo "no"))"
@@ -56,20 +57,30 @@ if [ -n "$1" ]; then
     fi
 else
     # No parameter supplied, proceed with the original logic (find files with 'hton')
-    echo "No parameter supplied. Searching for files containing 'hton' (excluding 'rpl-lite')."
+    echo No parameter supplied.
+    echo "See source $0 to enable logic to search for files containing specific text (such as 'hton')"
+    echo "before diffing each matching file (excluding 'rpl-lite')."
+    for i in {1..4} ; do echo ; done
     echo "------------------------------------------------------------------"
+    echo
+    echo "Usage:"
+    echo "  $0 <relative file path and name>"
+    echo "Base folders:"
+    echo "  Original code:            $ORIGINAL_DIR"
+    echo "  Modified code to compare: $DEVELOPED_DIR"
+    echo "Remember that right-clicking on a file tab in vsCode enables you to 'Copy Realative Path' which works in this script."
+    echo
 
     # Find files in your developed codebase
-    find "$DEVELOPED_DIR" -type f -exec grep -lE "hton" {} + | grep -v "rpl-lite" | while read -r DEVELOPED_FILE; do
+#    find "$DEVELOPED_DIR" -type f -exec grep -lE "hton" {} + | grep -v "rpl-lite" | while read -r DEVELOPED_FILE; do
         # Get the relative path from the developed directory
-        RELATIVE_PATH="${DEVELOPED_FILE#$DEVELOPED_DIR/}"
+#        RELATIVE_PATH="${DEVELOPED_FILE#$DEVELOPED_DIR/}"
 
         # Construct the path to the original file
-        ORIGINAL_FILE="$ORIGINAL_DIR/$RELATIVE_PATH"
+#        ORIGINAL_FILE="$ORIGINAL_DIR/$RELATIVE_PATH"
 
-        compare_and_diff "$ORIGINAL_FILE" "$DEVELOPED_FILE" "$RELATIVE_PATH"
-    done
+#        compare_and_diff "$ORIGINAL_FILE" "$DEVELOPED_FILE" "$RELATIVE_PATH"
+#    done
 fi
 
 echo "------------------------------------------------------------------"
-echo "Comparison complete."
