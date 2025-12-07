@@ -24,6 +24,11 @@ LATEX_PREAMBLE = r"""
 \usepackage{hyperref}
 \usepackage{tabularx}
 
+\usepackage{draftwatermark}
+\SetWatermarkLightness{ 0.9 }
+\SetWatermarkText{SimSummary\\Updated: \today}
+\SetWatermarkScale{ 0.3 }
+
 \begin{document}
 \title{Simulation Run Summary}
 \author{Contiki-NG RPL Project}
@@ -45,7 +50,7 @@ def get_pdf_page_count(pdf_path):
         return 0
 
 def parse_summary_file(filepath):
-    """Parses the summary file with the most robust logic yet."""
+    """Parse the summary file."""
     data = {'mop': 'N/A', 'ofs': 'N/A', 'start_time': 'N/A', 
             'finish_time': 'N/A', 'run_date': 'N/A'}
 
