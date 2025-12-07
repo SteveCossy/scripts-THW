@@ -49,8 +49,14 @@ def get_latex_preamble(log_filename, generation_time):
 \begin{document}
 """
 
-def get_latex_footer():
-    return r"\end{document}"
+def get_latex_footer(graphicTime):
+        return r"""
+        \begin{center}
+        \\[5mm]
+        \includegraphics
+        {/home/stevecos/Documents/images/nodes_"""+graphicTime+""".png}
+    \end{document}"
+    """
 
 class NetworkState:
     def __init__(self):
@@ -123,6 +129,10 @@ def generate_tikz_graph(topology, instance_id):
 def process_log_file(logfile_path):
     network = NetworkState()
     
+    # Extract date from filename
+    match = re.search(r"text_(\d+)\.txt", logfile_path)
+    logfileTimestamp = match.group(1) if match else "unknown"
+
     # Regex Patterns
     # Matches: 273994:00:19:56.392 Node:2 :[INFO: RPL       ] --- RPL Neighbour Set for Instance ID: 46 ---
     re_table_start = re.compile(r'(\d+:\d{2}:\d{2}\.\d{3})\s+Node:(\d+)\s+.*RPL Neighbour Set for Instance ID:\s+(\d+)')
@@ -218,7 +228,7 @@ def process_log_file(logfile_path):
                     current_node = None
                     current_instance = None
 
-        latex_content.append(get_latex_footer())
+        latex_content.append(get_latex_footer(logfileTimestamp))
         
         # Write to file
         with open(OUTPUT_TEX_FILE, 'w') as out:
