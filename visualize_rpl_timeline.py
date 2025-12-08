@@ -50,12 +50,10 @@ def get_latex_preamble(log_filename, generation_time):
 """
 
 def get_latex_footer(graphicTime):
-        return r"""
-        \begin{center}
-        \\[5mm]
-        \includegraphics
-        {/home/stevecos/Documents/images/nodes_"""+graphicTime+""".png}
-    \end{document}"
+        return F"""
+        \\vspace{{5mm}}
+        \\includegraphics{{/home/stevecos/Documents/images/nodes_"""+graphicTime+""".png}
+    \\end{document}"
     """
 
 class NetworkState:
@@ -130,7 +128,7 @@ def process_log_file(logfile_path):
     network = NetworkState()
     
     # Extract date from filename
-    match = re.search(r"text_(\d+)\.txt", logfile_path)
+    match = re.search(r"10-RPL-Single-(\d+)\.txt", logfile_path.name)
     logfileTimestamp = match.group(1) if match else "unknown"
 
     # Regex Patterns
