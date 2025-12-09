@@ -6,7 +6,7 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-grep -n "Pref Y" "$1" |
+grep -n "Pref Y" "$1" | grep fd00 |
 
 # You can pipe your grep directly into this script:
 # grep "RPL: DAG:" logfile.txt | ./parse_dag.sh
