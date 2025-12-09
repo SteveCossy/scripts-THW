@@ -6,59 +6,61 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-grep -n "Incoming DIO (id" "$1" | grep 30,  | awk '
+grep -n "Pref Y" "$1" |
+
+# You can pipe your grep directly into this script:
+# grep "RPL: DAG:" logfile.txt | ./parse_dag.sh
+
+awk '
 {
     # --- 1. TIMESTAMP ---
-    # Input format: 39851:00:07:34.307
-    # We split by ":" to remove the simulation tick count (39851)
-    # and keep the time (00:07:34.307).
+    # Split 70984:00:18:16.081 by ":"
     split($1, t, ":");
     timestamp = t[2] ":" t[3] ":" t[4];
 
-    # --- 2. RECEIVING NODE ---
-    # Input format: Node:6
+    # --- 2. REPORTING NODE ---
+    # Format: Node:5
     split($2, n, ":");
-    rx_node = n[2];
+    node_id = n[2];
 
-    # --- 3. DIO DATA (Instance, Rank) ---
-    # The format is always: ... (id, ver, rank) = (30,240,434) ...
-    # This is the second to last field ($NF-1)
-    dio_str = $(NF-1);
+    # --- 3. DYNAMIC FIELD EXTRACTION ---
+    # We define defaults just in case a field is missing
+    dag="?"; parent="?"; rank="?"; lnkm="?"; pathcost="?";
 
-    # Remove parentheses
-    gsub(/[()]/, "", dio_str);
+    # Loop through all fields in the line to find key identifiers
+    for (i=1; i<=NF; i++) {
 
-    # Split by comma to get values
-    split(dio_str, d, ",");
-    instance = d[1];
-    # version = d[2]; # We ignore version as requested
-    rank = d[3];
-
-    # --- 4. SOURCE NODE ---
-    # Input format: from:fe80::201:1:1:1
-    # This is the last field ($NF)
-    ip_field = $NF;
-
-    # Remove "from:" prefix
-    sub("from:", "", ip_field);
-
-    # Extract the last segment of the IPv6 address to get the Node ID
-    # (e.g., fe80::201:1:1:1 -> 1)
-    num_parts = split(ip_field, ip_parts, ":");
-    tx_node = ip_parts[num_parts];
-
-    # --- 5. LOGIC & OUTPUT ---
-
-    # If source changes (and it is not the very first line), print an empty line
-    if (NR > 1 && tx_node != prev_tx_node) {
-        print "";
+        if ($i == "DAG:") {
+            dag = $(i+1);
+        }
+        else if ($i == "Parent:") {
+            parent = $(i+1);
+            # Optional: Remove leading zeros (e.g., "07" becomes "7")
+            # sub(/^0+/, "", parent);
+        }
+        else if ($i == "Rank:") {
+            rank = $(i+1);
+            gsub(",", "", rank); # Remove the comma
+        }
+        else if ($i == "LnkM:") {
+            lnkm = $(i+1);
+            gsub(",", "", lnkm); # Remove the comma
+        }
+        else if ($i == "PathCost:") {
+            pathcost = $(i+1);
+        }
     }
 
-    # Update previous source tracker
-    prev_tx_node = tx_node;
+    # --- 4. OUTPUT LOGIC ---
 
-    # Print formatted output
-    # Format: Timestamp, Source, Receiver, Instance, Rank
-    printf "%s, %s, %s, %s, %s\n", timestamp, tx_node, rx_node, instance, rank;
+    # Insert linebreak if the Reporting Node changes
+    if (NR > 1 && node_id != prev_node) {
+        print "";
+    }
+    prev_node = node_id;
+
+    # Header-style output: Timestamp, Node, DAG, Parent, Rank, Metric, Cost
+    printf "%s, %s, %s, %s, %s, %s, %s\n", timestamp, node_id, dag, parent, rank, lnkm, pathcost;
 
 }'
+# "${1:-/dev/stdin}" here would allow it to read from a file arg OR from a pipe
