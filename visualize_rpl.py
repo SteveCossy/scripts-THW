@@ -1,11 +1,3 @@
-
-
-
-
-
-
-
-
 #!/usr/bin/env python3
 import sys
 import re
@@ -14,8 +6,8 @@ from pathlib import Path
 
 # --- Configuration ---
 OUTPUT_FILENAME = "DIO_graph.tex"
-TARGET_INSTANCE = "30"
-TARGET_DAG_PREFIX = "fd00"
+TARGET_INSTANCE = "46"
+TARGET_DAG_PREFIX = "fd02"
 
 # --- Visualization Settings ---
 Y_SCALE_CM = 0.6         # cm per second (vertical)
@@ -202,8 +194,8 @@ def generate_tikz_pages(nodes, dio_events, parent_events, output_path):
                 color = COLORS[(idx_in_batch - 1) % len(COLORS)]
 
                 # --- CURVATURE SETTING ---
-                base_bend = 10  # Reduced from 45 as requested
-                bend_deg = base_bend + ((idx_in_batch - 1) * 15)
+                base_bend = 20  # Reduced from 45 as requested
+                bend_deg = base_bend + ((idx_in_batch - 1) * 10)
                 bend_cmd = f"bend right={bend_deg}"
 
                 content.append(fr"\draw[->, thick, {color}, >={latex_arrow_head()}, {bend_cmd}] ({child}, {y_pos:.2f}) to ({parent}, {y_pos:.2f});")
