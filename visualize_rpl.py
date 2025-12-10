@@ -234,7 +234,7 @@ def generate_tikz_pages(nodes, dio_events, parent_events, output_path):
                 # Base bend logic
                 # If simultaneous arrows exist, we increase bend for each subsequent one
                 # to separate them visually.
-                base_bend = 45
+                base_bend = 10
                 bend_deg = base_bend + ((idx_in_batch - 1) * 15)
 
                 # Direction of bend
