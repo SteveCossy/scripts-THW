@@ -2,63 +2,53 @@
 import sys
 import re
 import argparse
+import math
 from pathlib import Path
-import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
 
 # --- Configuration ---
-# Only parse lines relevant to this Instance/DAG
+OUTPUT_FILENAME = "DIO_graph.tex" # Fixed output name
 TARGET_INSTANCE = "30"
 TARGET_DAG_PREFIX = "fd00"
 
+# --- Visualization Settings ---
+Y_SCALE_CM = 0.6         # How many cm per second (vertical)
+PAGE_HEIGHT_CM = 22.0    # Max height of drawing area per page
+MIN_LABEL_DIST_CM = 0.5  # Don't print timestamps closer than this
+
+# TikZ Colors to cycle through for arrows
+COLORS = ["red", "blue", "orange", "teal", "violet", "cyan!70!black", "magenta"]
+
 def parse_time(timestr):
-    """
-    Converts 'HH:MM:SS.ms' to total seconds (float).
-    """
+    """Converts 'HH:MM:SS.ms' to total seconds (float)."""
     h, m, s = timestr.split(':')
     return float(h) * 3600 + float(m) * 60 + float(s)
 
 def extract_node_id(ipv6_str):
-    """
-    Extracts the last segment of an IPv6 string to get the node ID.
-    e.g., 'fe80::201:1:1:5' -> 5
-    """
-    # Remove 'from:' prefix if present
+    """Extracts node ID from IPv6 string."""
     clean_ip = ipv6_str.replace("from:", "").strip()
     parts = clean_ip.split(':')
     try:
-        # Get last part, convert hex to int (handle cases like 'a' or '10')
         return int(parts[-1], 16)
     except ValueError:
         return 0
 
 def parse_log_file(filepath):
-    """
-    Parses the raw log file for DIOs and Parent changes.
-    Returns:
-        nodes (set): All unique node IDs found.
-        dio_events (list): {'time', 'rx_node', 'tx_node'}
-        parent_events (list): {'time', 'node', 'parent', 'rank', 'cost'}
-    """
-
+    """Parses log file for DIOs and Parent changes."""
     dio_events = []
     parent_events = []
     nodes = set()
 
-    # Regex Patterns
-    # 1. Base format: 39851:00:07:34.307 Node:6 ...
-    # re_base = re.compile(r"^\d+:(\d{2}:\d{2}:\d{2}\.\d+)\s+Node:(\d+)\s+:(.*)")
-    # 1. Base format: 00:07:34.307 Node:6 ...
+    # Regex 1: Time and Node (Updated per your request)
+    # Matches: 00:07:34.307 Node:6 ...
     re_base = re.compile(r"^(\d{2}:\d{2}:\d{2}\.\d+)\s+Node:(\d+)\s+:(.*)")
 
-    # 2. DIO: Incoming DIO (id, ver, rank) = (30,240,434) from:fe80::201:1:1:1
+    # Regex 2: Incoming DIO
     re_dio = re.compile(r"Incoming DIO \(id, ver, rank\) = \((\d+),.*\) (from:[\w:]+)")
 
-    # 3. DAG: RPL: DAG: fd00 ... Parent: 07 | Rank: 128 ...
-    # Flexible regex to catch fields even if order changes slightly
+    # Regex 3: DAG Info
     re_dag_chk = re.compile(r"RPL: DAG:\s*([0-9a-fA-F]+)")
 
-    start_time_offset = None
+    start_time_abs = None
 
     with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
         for line in f:
@@ -71,169 +61,214 @@ def parse_log_file(filepath):
             rx_node = int(node_str)
             nodes.add(rx_node)
 
-            # Normalize time to start at 0 for the graph
-            if start_time_offset is None:
-                start_time_offset = current_time
-            rel_time = current_time - start_time_offset
+            if start_time_abs is None:
+                start_time_abs = current_time
 
-            # --- Check for DIO Reception ---
+            # Relative time from start of log
+            rel_time = current_time - start_time_abs
+
+            # --- DIO Events ---
             if "Incoming DIO" in message:
                 dio_match = re_dio.search(message)
                 if dio_match:
                     instance_id, from_ip = dio_match.groups()
-
-                    # Filter: Only care about specific Instance
                     if instance_id == TARGET_INSTANCE:
                         tx_node = extract_node_id(from_ip)
                         nodes.add(tx_node)
                         dio_events.append({
                             'time': rel_time,
+                            'timestamp_str': time_str,
                             'rx_node': rx_node,
                             'tx_node': tx_node
                         })
 
-            # --- Check for Parent / DAG Update ---
+            # --- Parent Events ---
             if "RPL: DAG:" in message:
                 dag_match = re_dag_chk.search(message)
                 if dag_match and dag_match.group(1) == TARGET_DAG_PREFIX:
-                    # Extract fields manually to be robust against "Pref Y" etc
-                    # Logic: Find "Parent:", take next word. Find "Rank:", take next word.
                     parts = message.split()
                     parent_id = 0
-                    rank_val = 0
-
                     try:
                         if "Parent:" in parts:
                             p_idx = parts.index("Parent:") + 1
-                            # Strip leading zeros, handle '07' -> 7
                             parent_str = parts[p_idx].replace(",", "")
                             parent_id = int(parent_str, 16) if parent_str.lower() != "none" else 0
 
-                        if "Rank:" in parts:
-                            r_idx = parts.index("Rank:") + 1
-                            rank_val = int(parts[r_idx].replace(",", ""))
-
                         parent_events.append({
                             'time': rel_time,
+                            'timestamp_str': time_str,
                             'node': rx_node,
-                            'parent': parent_id,
-                            'rank': rank_val
+                            'parent': parent_id
                         })
                     except (ValueError, IndexError):
-                        pass # parsing failed for this specific line
+                        pass
 
     return sorted(list(nodes)), dio_events, parent_events
 
-def generate_png(nodes, dio_events, parent_events, output_path):
-    """Generates a Matplotlib space-time diagram."""
-    fig, ax = plt.subplots(figsize=(12, 10))
+def generate_tikz_pages(nodes, dio_events, parent_events, output_path):
+    """Generates a paginated TikZ file."""
 
-    # Grid Setup
-    ax.set_xlim(0, max(nodes) + 1)
-    # We invert Y so time goes down (like your whiteboard)
-    ax.invert_yaxis()
-
-    ax.xaxis.set_major_locator(ticker.MultipleLocator(1))
-    ax.grid(True, which='both', linestyle='--', alpha=0.3)
-
-    ax.set_title(f"RPL Convergence (Instance {TARGET_INSTANCE}, DAG {TARGET_DAG_PREFIX})")
-    ax.set_xlabel("Node ID")
-    ax.set_ylabel("Time (seconds from start of log)")
-
-    # 1. Plot DIO Receptions (Green Dots)
-    # Whiteboard: Green dots are RX.
-    # We use small green markers.
-    rx_x = [d['rx_node'] for d in dio_events]
-    rx_y = [d['time'] for d in dio_events]
-    ax.scatter(rx_x, rx_y, c='green', s=10, alpha=0.5, label='DIO Received')
-
-    # Optional: Draw lines from TX to RX? (Can be messy if too many)
-    # for d in dio_events:
-    #    ax.annotate("", xy=(d['rx_node'], d['time']), xytext=(d['tx_node'], d['time']),
-    #                arrowprops=dict(arrowstyle="->", color='green', alpha=0.1))
-
-    # 2. Plot Parent Changes (Red/Black logic)
-    # We plot the NODE changing the parent
-    p_x = [p['node'] for p in parent_events]
-    p_y = [p['time'] for p in parent_events]
-
-    # We can color code: Red = valid parent, Black/X = lost parent (0)
-    colors = ['red' if p['parent'] != 0 else 'black' for p in parent_events]
-    markers = ['o' if p['parent'] != 0 else 'x' for p in parent_events]
-
-    for i, p in enumerate(parent_events):
-        m = 'o' if p['parent'] != 0 else 'x'
-        c = 'red' if p['parent'] != 0 else 'black'
-
-        ax.scatter(p['node'], p['time'], c=c, marker=m, s=40, zorder=10)
-
-        # Annotation: "P:7 (128)" -> Parent 7, Rank 128
-        label = f"{p['parent']}" # Just parent ID to keep it clean
-        ax.annotate(label, (p['node'], p['time']),
-                    textcoords="offset points", xytext=(5,0),
-                    fontsize=8, color='darkred')
-
-    # Legend (Custom proxy artists)
-    from matplotlib.lines import Line2D
-    legend_elements = [
-        Line2D([0], [0], marker='o', color='w', markerfacecolor='green', label='RX DIO (Phy)'),
-        Line2D([0], [0], marker='o', color='w', markerfacecolor='red', label='Selected Parent'),
-        Line2D([0], [0], marker='x', color='black', label='Lost Parent (NULL)'),
-    ]
-    ax.legend(handles=legend_elements, loc='upper right')
-
-    plt.tight_layout()
-    plt.savefig(output_path, dpi=150)
-    print(f"Generated PNG: {output_path}")
-
-def generate_tikz(nodes, dio_events, parent_events, output_path):
-    """Generates a TikZ file for high-quality LaTeX plotting."""
-
-    # Scale time for TikZ (1 second = 0.5cm vertical, for example)
-    yscale = 0.2
-
-    tikz_content = [
-        r"\begin{tikzpicture}[x=1cm, y=-" + str(yscale) + "cm]", # Inverted Y
-        r"\draw[help lines, step=1, lightgray] (0,0) grid (" + str(max(nodes)+1) + "," + str(max(d['time'] for d in dio_events)) + ");",
-        r"% Axis Labels",
-    ]
-
-    # X Axis Labels
-    for n in nodes:
-        tikz_content.append(fr"\node at ({n}, -2) {{\textbf{{{n}}}}};")
-
-    tikz_content.append(r"% --- DIO Receptions (Green) ---")
+    # Combine all events to sort them by time
+    # We add a 'type' tag to distinguish them
+    all_events = []
     for d in dio_events:
-        # Plotting tiny green dots for reception
-        t = d['time']
-        n = d['rx_node']
-        # Commenting the source for debugging in latex
-        tikz_content.append(fr"\fill[green!70!black] ({n}, {t:.3f}) circle (2pt); % From {d['tx_node']}")
-
-    tikz_content.append(r"% --- Parent Changes (Red) ---")
+        d['type'] = 'DIO'
+        all_events.append(d)
     for p in parent_events:
-        t = p['time']
-        n = p['node']
-        par = p['parent']
-        rank = p['rank']
+        p['type'] = 'PARENT'
+        all_events.append(p)
 
-        if par == 0:
-            # Lost parent (Black X)
-            tikz_content.append(fr"\node[cross out, draw=black, thick, inner sep=2pt] at ({n}, {t:.3f}) {{}};")
-        else:
-            # New Parent (Red Circle)
-            tikz_content.append(fr"\draw[red, thick] ({n}, {t:.3f}) circle (4pt);")
-            # Label the parent ID to the right
-            tikz_content.append(fr"\node[right, font=\tiny, color=red] at ({n}, {t:.3f}) {{{par}}};")
+    # Sort chronologically
+    all_events.sort(key=lambda x: x['time'])
 
-    tikz_content.append(r"\end{tikzpicture}")
+    if not all_events:
+        print("No events found.")
+        return
 
+    max_time = all_events[-1]['time']
+
+    # Calculate Pagination
+    # Time per page = Height / Scale
+    time_per_page = PAGE_HEIGHT_CM / Y_SCALE_CM
+
+    content = []
+
+    # Header helper function
+    def add_header(current_time_offset):
+        """Draws the Node IDs at the top of the page."""
+        c = []
+        c.append(r"\begin{tikzpicture}[x=1cm, y=-1cm]") # Note y=-1cm, we handle scaling manually
+        # Draw vertical grid lines for the whole page length
+        c.append(fr"\draw[lightgray, dotted] (0,0) grid ({max(nodes)+1}, {PAGE_HEIGHT_CM});")
+
+        # Draw Node Headers
+        for n in nodes:
+            c.append(fr"\node[font=\bfseries, fill=white, inner sep=2pt] at ({n}, 0) {{{n}}};")
+        return c
+
+    # Footer/Closer helper
+    def close_page():
+        return [r"\end{tikzpicture}", r"\newpage"]
+
+    current_page_idx = 0
+    current_page_start_time = 0.0
+    current_page_end_time = time_per_page
+
+    # Start Page 1
+    content.extend(add_header(0))
+
+    last_label_y = -999 # To track timestamp overlap
+
+    # Group events by timestamp for the arrow curvature logic
+    # We iterate through indices to look ahead/behind if needed
+    i = 0
+    while i < len(all_events):
+        evt = all_events[i]
+        t = evt['time']
+
+        # --- Pagination Check ---
+        if t > current_page_end_time:
+            # Close current page
+            content.extend(close_page())
+
+            # Start new page
+            current_page_idx += 1
+            current_page_start_time = current_page_end_time
+            current_page_end_time += time_per_page
+            content.extend(add_header(current_page_start_time))
+            last_label_y = -999 # Reset label tracker
+
+        # Calculate Y coordinate relative to current page top
+        # y = (Absolute Time - Page Start Time) * Scale
+        y_pos = (t - current_page_start_time) * Y_SCALE_CM
+
+        # --- Time Label Logic ---
+        # Only print if far enough from last label
+        if abs(y_pos - last_label_y) > MIN_LABEL_DIST_CM:
+            # Print label on left axis
+            label = evt['timestamp_str']
+            # Optional: Trim .000 ms if you want shorter labels
+            # label = label.split('.')[0]
+            content.append(fr"\node[anchor=east, font=\tiny, color=gray] at (0, {y_pos:.2f}) {{{label}}};")
+            last_label_y = y_pos
+
+        # --- Draw Events ---
+        if evt['type'] == 'DIO':
+            # Green dots
+            content.append(fr"\fill[green!60!black] ({evt['rx_node']}, {y_pos:.2f}) circle (2pt);")
+
+        elif evt['type'] == 'PARENT':
+            # Arrow Logic
+            child = evt['node']
+            parent = evt['parent']
+
+            if parent == 0:
+                # Lost Parent -> Black Cross
+                content.append(fr"\node[cross out, draw=black, thick, inner sep=2pt] at ({child}, {y_pos:.2f}) {{}};")
+            else:
+                # Valid Parent -> Arrow
+
+                # Check for "simultaneous" arrows to adjust curve
+                # Look ahead to see how many events match this timestamp & type
+                simul_count = 0
+                idx_in_batch = 0
+
+                # Simple loop to count simultaneous parent switches
+                j = i
+                while j < len(all_events) and abs(all_events[j]['time'] - t) < 0.001 and all_events[j]['type'] == 'PARENT':
+                    simul_count += 1
+                    j += 1
+
+                # Find current index in this batch
+                # (We re-scan slightly, but n is small)
+                k = i
+                while k >= 0 and abs(all_events[k]['time'] - t) < 0.001 and all_events[k]['type'] == 'PARENT':
+                    idx_in_batch += 1
+                    k -= 1
+                # idx_in_batch is 1-based index of this specific arrow in the group
+
+                # Determine Bend Angle and Color
+                # Cycle colors based on batch index
+                color = COLORS[(idx_in_batch - 1) % len(COLORS)]
+
+                # Base bend logic
+                # If simultaneous arrows exist, we increase bend for each subsequent one
+                # to separate them visually.
+                base_bend = 45
+                bend_deg = base_bend + ((idx_in_batch - 1) * 15)
+
+                # Direction of bend
+                # Convention: Child on Left, Parent on Right -> Bend Left (Arc Up)
+                # But TikZ 'bend left' is relative to the path direction.
+                # Standard visual: arcs shouldn't cross straight lines if possible.
+
+                # Let's standardize: always arc "downward" relative to the graph
+                # (which visually looks like arcing between columns)
+                # Actually, standardizing 'bend right' usually looks cleaner.
+                bend_cmd = f"bend right={bend_deg}"
+
+                # Specific Overrides:
+                # If distance is huge (>3 nodes), make line dashed or thinner?
+                # Keep simple for now.
+
+                content.append(fr"\draw[->, thick, {color}, >={latex_arrow_head()}, {bend_cmd}] ({child}, {y_pos:.2f}) to ({parent}, {y_pos:.2f});")
+
+        i += 1
+
+    # Close final page
+    content.append(r"\end{tikzpicture}")
+
+    # Write File
     with open(output_path, 'w') as f:
-        f.write("\n".join(tikz_content))
-    print(f"Generated TikZ: {output_path}")
+        f.write("\n".join(content))
+    print(f"Generated paginated TikZ: {output_path}")
+
+def latex_arrow_head():
+    """Returns the LaTeX string for the arrow tip style."""
+    return "stealth"
 
 def main():
-    parser = argparse.ArgumentParser(description="Visualize RPL Log")
+    parser = argparse.ArgumentParser(description="Visualize RPL Log (TikZ)")
     parser.add_argument("logfile", type=Path, help="Path to raw Contiki log file")
     args = parser.parse_args()
 
@@ -241,21 +276,17 @@ def main():
         print("Error: File not found.")
         sys.exit(1)
 
-    print(f"Parsing {args.logfile} for Instance {TARGET_INSTANCE}...")
+    print(f"Parsing {args.logfile}...")
     nodes, dios, parents = parse_log_file(args.logfile)
 
     if not nodes:
-        print("No nodes found. Check log format.")
+        print("No nodes found.")
         sys.exit(1)
 
-    print(f"Found {len(nodes)} nodes, {len(dios)} DIO RX events, {len(parents)} Parent changes.")
+    print(f"Nodes: {nodes}")
+    print(f"Events: {len(dios)} DIOs, {len(parents)} Switches.")
 
-    # Output filenames
-    png_out = args.logfile.with_suffix('.png')
-    tikz_out = args.logfile.with_suffix('.tex')
-
-    generate_png(nodes, dios, parents, png_out)
-    generate_tikz(nodes, dios, parents, tikz_out)
+    generate_tikz_pages(nodes, dios, parents, OUTPUT_FILENAME)
 
 if __name__ == "__main__":
     main()
