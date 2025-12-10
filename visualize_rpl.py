@@ -47,7 +47,9 @@ def parse_log_file(filepath):
 
     # Regex Patterns
     # 1. Base format: 39851:00:07:34.307 Node:6 ...
-    re_base = re.compile(r"^\d+:(\d{2}:\d{2}:\d{2}\.\d+)\s+Node:(\d+)\s+:(.*)")
+    # re_base = re.compile(r"^\d+:(\d{2}:\d{2}:\d{2}\.\d+)\s+Node:(\d+)\s+:(.*)")
+    # 1. Base format: 00:07:34.307 Node:6 ...
+    re_base = re.compile(r"^(\d{2}:\d{2}:\d{2}\.\d+)\s+Node:(\d+)\s+:(.*)")
 
     # 2. DIO: Incoming DIO (id, ver, rank) = (30,240,434) from:fe80::201:1:1:1
     re_dio = re.compile(r"Incoming DIO \(id, ver, rank\) = \((\d+),.*\) (from:[\w:]+)")
