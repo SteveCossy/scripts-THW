@@ -6,7 +6,12 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-grep -n "Pref Y" "$1" | grep fd00 |
+# Header row
+
+printf "Timestamp, Node, DAG, Parent, Rank, Metric, Cost"
+
+# grep -n "Pref Y" "$1" | grep fd00 |
+grep -n "Node:5" "$1" | grep fd00 |
 
 # You can pipe your grep directly into this script:
 # grep "RPL: DAG:" logfile.txt | ./parse_dag.sh
