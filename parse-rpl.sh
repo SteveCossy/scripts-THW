@@ -8,10 +8,10 @@ fi
 
 # Header row
 
-printf "Timestamp, Node, DAG, Parent, Rank, Metric, Cost"
+printf "Timestamp, Node, DAG, Parent, Rank, Metric, Cost, Prefered?";
 
 # grep -n "Pref Y" "$1" | grep fd00 |
-grep -n "Node:5" "$1" | grep fd00 |
+grep -n "Node:5" "$1" | grep fd00 | grep "Pref " |
 
 # You can pipe your grep directly into this script:
 # grep "RPL: DAG:" logfile.txt | ./parse_dag.sh
@@ -30,7 +30,7 @@ awk '
 
     # --- 3. DYNAMIC FIELD EXTRACTION ---
     # We define defaults just in case a field is missing
-    dag="?"; parent="?"; rank="?"; lnkm="?"; pathcost="?";
+    dag="?"; parent="?"; rank="?"; lnkm="?"; pathcost="?"; pref="?" ;
 
     # Loop through all fields in the line to find key identifiers
     for (i=1; i<=NF; i++) {
@@ -54,6 +54,10 @@ awk '
         else if ($i == "PathCost:") {
             pathcost = $(i+1);
         }
+        else if ($i == "Pref ") {
+            pref = $(i+2);
+#            gsub(",", "", lnkm); # Remove the comma
+        }
     }
 
     # --- 4. OUTPUT LOGIC ---
@@ -65,7 +69,7 @@ awk '
     prev_node = node_id;
 
     # Header-style output: Timestamp, Node, DAG, Parent, Rank, Metric, Cost
-    printf "%s, %s, %s, %s, %s, %s, %s\n", timestamp, node_id, dag, parent, rank, lnkm, pathcost;
+    printf "%s, %s, %s, %s, %s, %s, %s\n", timestamp, node_id, dag, parent, rank, lnkm, pathcost, pref;
 
 }'
 # "${1:-/dev/stdin}" here would allow it to read from a file arg OR from a pipe
