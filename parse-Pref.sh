@@ -6,7 +6,11 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-grep -n "Incoming DIO (id" "$1" | grep 30,  | awk '
+printf "timestamp, tx_node, rx_node, instance, rank\n";
+
+#grep "Incoming DIO (id" "$1" | awk '
+grep "Incoming DIO (id" "$1" | grep -E "(5,|3,|1,)  | awk '
+
 {
     # --- 1. TIMESTAMP ---
     # Input format: 39851:00:07:34.307
@@ -59,6 +63,6 @@ grep -n "Incoming DIO (id" "$1" | grep 30,  | awk '
 
     # Print formatted output
     # Format: Timestamp, Source, Receiver, Instance, Rank
-    printf "%s, %s, %s, %s, %s\n", timestamp, tx_node, rx_node, instance, rank;
+    printf "%s, t->%s, r->%s, %s, %s\n", timestamp, tx_node, rx_node, instance, rank;
 
 }'
