@@ -9,7 +9,7 @@ fi
 printf "timestamp, tx_node, rx_node, instance, rank\n";
 
 #grep "Incoming DIO (id" "$1" | awk '
-grep "Incoming DIO (id" "$1" | grep -E "(5,|3,|1,)  | awk '
+grep "Incoming DIO (id" "$1" | grep -E "(e:3|e:5|e:1)" | awk '
 
 {
     # --- 1. TIMESTAMP ---
