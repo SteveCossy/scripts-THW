@@ -11,9 +11,9 @@ fi
 printf "Timestamp, Node, DAG, Parent, Rank, Metric, Cost, Preferred?\n";
 
 # grep -n "Pref Y" "$1" | grep fd00 |
-# grep fd00 "$1" | grep "Pref " |
 
-grep "Node:5" | grep fd00 "$1" | grep "Pref " |
+grep fd00 "$1" | grep "Pref " |
+#  grep fd00 "$1" | grep "Node:5" | grep "Pref " |
 
 # You can pipe your grep directly into this script:
 # grep "RPL: DAG:" logfile.txt | ./parse_dag.sh
