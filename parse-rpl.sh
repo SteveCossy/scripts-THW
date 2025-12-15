@@ -11,7 +11,7 @@ fi
 printf "Timestamp, Node, DAG, Parent, Rank, Metric, Cost, Preferred?\n";
 
 # grep -n "Pref Y" "$1" | grep fd00 |
-grep "Node:5" "$1" | grep fd00 | grep "Pref " |
+grep -n "Node:5" "$1" | grep fd00 | grep "Pref " |
 
 # You can pipe your grep directly into this script:
 # grep "RPL: DAG:" logfile.txt | ./parse_dag.sh
@@ -21,7 +21,7 @@ awk '
     # --- 1. TIMESTAMP ---
     # Split 70984:00:18:16.081 by ":"
     split($1, t, ":");
-    timestamp = t[2] ":" t[3] ":" t[4];
+    timestamp = t[3] ":" t[4] ":" t[5];
 
     # --- 2. REPORTING NODE ---
     # Format: Node:5
