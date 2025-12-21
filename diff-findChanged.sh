@@ -41,12 +41,13 @@ if [ -n "$1" ]; then
     PARAM_RELATIVE_PATH="$1"
     PARAM_DEVELOPED_FILE="$DEVELOPED_DIR/$PARAM_RELATIVE_PATH"
     PARAM_ORIGINAL_FILE="$ORIGINAL_DIR/$PARAM_RELATIVE_PATH"
+    COMMAND_ON_DIFF="$PARAM_DEVELOPED_FILE $PARAM_ORIGINAL_FILE > /dev/null 2>&1 &"
 
     echo "Parameter supplied: '$PARAM_RELATIVE_PATH'. Attempting direct comparison."
 
     if [ -f "$PARAM_DEVELOPED_FILE" ] && [ -f "$PARAM_ORIGINAL_FILE" ]; then
         echo "Both files exist. Performing direct comparison."
-        COMMAND_ON_DIFF="kdiff3 ""$original_file"" ""$developed_file"" > /dev/null 2>&1 &"
+        COMMAND_ON_DIFF="kdiff3 $COMMAND_ON_DIFF"
         compare_and_diff "$PARAM_ORIGINAL_FILE" "$PARAM_DEVELOPED_FILE" "$PARAM_RELATIVE_PATH"
         echo "Comparison complete."
     else
@@ -76,7 +77,7 @@ else
     read
     if [[ "$REPLY" == "y" ]]; then
             # Find files in your developed codebase
-        COMMAND_ON_DIFF="echo $0 ""$original_file"" ""$developed_file"""
+        COMMAND_ON_DIFF="echo $COMMAND_ON_DIFF"
        find "$DEVELOPED_DIR" -type f -exec grep -lE "hton" {} + | grep -v "rpl-lite" | while read -r DEVELOPED_FILE; do
             # Get the relative path from the developed directory
             RELATIVE_PATH="${DEVELOPED_FILE#$DEVELOPED_DIR/}"
