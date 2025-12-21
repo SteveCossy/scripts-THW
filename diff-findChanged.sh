@@ -11,10 +11,11 @@ ORIGINAL_DIR="/local/scratch/stevecos/ben/contiki-ng"
 echo "Comparing files between:"
 echo "Developed: $DEVELOPED_DIR"
 echo "Original:  $ORIGINAL_DIR"
-echo "------------------------------------------------------------------"
 
 # Function to perform the kdiff3 comparison
 compare_and_diff() {
+    echo "Command On Diff: $COMMAND_ON_DIFF"
+    echo "------------------------------------------------------------------"
     local original_file="$1"
     local developed_file="$2"
     local relative_path="$3"
@@ -25,7 +26,7 @@ compare_and_diff() {
            echo "same"
         else
            echo "Showing differences in kdiff3"
-           kdiff3 "$original_file" "$developed_file" > /dev/null 2>&1 &
+
         fi
     else
         echo "--- WARNING: Original file not found for $relative_path (might be new) ---"
@@ -45,6 +46,7 @@ if [ -n "$1" ]; then
 
     if [ -f "$PARAM_DEVELOPED_FILE" ] && [ -f "$PARAM_ORIGINAL_FILE" ]; then
         echo "Both files exist. Performing direct comparison."
+        COMMAND_ON_DIFF="kdiff3 ""$original_file"" ""$developed_file"" > /dev/null 2>&1 &"
         compare_and_diff "$PARAM_ORIGINAL_FILE" "$PARAM_DEVELOPED_FILE" "$PARAM_RELATIVE_PATH"
         echo "Comparison complete."
     else
@@ -70,17 +72,21 @@ else
     echo "  Modified code to compare: $DEVELOPED_DIR"
     echo "Remember that right-clicking on a file tab in vsCode enables you to 'Copy Realative Path' which works in this script."
     echo
+    echo "Continue with full list of changed files? (y/N)"
+    read
+    if [[ "$REPLY" == "y" ]]; then
+            # Find files in your developed codebase
+        COMMAND_ON_DIFF="echo $0 ""$original_file"" ""$developed_file"""
+       find "$DEVELOPED_DIR" -type f -exec grep -lE "hton" {} + | grep -v "rpl-lite" | while read -r DEVELOPED_FILE; do
+            # Get the relative path from the developed directory
+            RELATIVE_PATH="${DEVELOPED_FILE#$DEVELOPED_DIR/}"
 
-    # Find files in your developed codebase
-#    find "$DEVELOPED_DIR" -type f -exec grep -lE "hton" {} + | grep -v "rpl-lite" | while read -r DEVELOPED_FILE; do
-        # Get the relative path from the developed directory
-#        RELATIVE_PATH="${DEVELOPED_FILE#$DEVELOPED_DIR/}"
+            # Construct the path to the original file
+            ORIGINAL_FILE="$ORIGINAL_DIR/$RELATIVE_PATH"
 
-        # Construct the path to the original file
-#        ORIGINAL_FILE="$ORIGINAL_DIR/$RELATIVE_PATH"
-
-#        compare_and_diff "$ORIGINAL_FILE" "$DEVELOPED_FILE" "$RELATIVE_PATH"
-#    done
+            compare_and_diff "$ORIGINAL_FILE" "$DEVELOPED_FILE" "$RELATIVE_PATH"
+       done
+    fi
 fi
 
 echo "------------------------------------------------------------------"
