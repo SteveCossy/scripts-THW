@@ -76,7 +76,7 @@ else
         -not -path '*/.*' \
         -not -path '*rpl-lite*' \
         -not -name "*.o" \
-        -not -name "*.d" \
+        -not -name "*.d" \l
         -not -name "*.a" | while read -r DEVELOPED_FILE; do
 
         # Get the relative path from the developed directory
@@ -91,7 +91,8 @@ else
 
         # If files are different (Status 1), write kdiff3 command to file
         if [ $RESULT -eq 1 ]; then
-            echo "kdiff3 \"$ORIGINAL_FILE\" \"$DEVELOPED_FILE\" &" >> "$TEMPFILE"
+            MOD_DATE=$(date -r "$DEVELOPED_FILE" "+%Y-%m-%d")
+            echo "kdiff3 \"$ORIGINAL_FILE\" \"$DEVELOPED_FILE\" & # Last mod: $MOD_DATE" >> "$TEMPFILE"
         fi
     done
 
