@@ -23,6 +23,8 @@ set -o pipefail
           BASE_DIR="$HOME"
        WORKING_DIR="$BASE_DIR/data/timeline"
      PYTHON_SCRIPT="$BASE_DIR/scripts/visualize_rpl_timeline.py"
+      GRAPHICS_DIR="$BASE_DIR/Documents/images"
+   DEFAULT_GRAPHIC="$GRAPHICS_DIR/nodes_unknown.png"
 #PYTHON_SCRIPT_LOGS="$BASE_DIR/scripts/process_timeline.log"
 #     GRAPH_TEX_FILE="$BASE_DIR/data/rpl_graph.tex"
 #     TABLE_TEX_FILE="$BASE_DIR/data/rpl_table.tex"
@@ -58,6 +60,11 @@ if [[ "$FILE" =~ ([0-9]{14}) ]]; then
     SUFFIX="${BASH_REMATCH[1]}"
     echo "--> Extracted date suffix: $SUFFIX"
     SUMMARY_FILE_PDF="$SUMMARY_FILE-$SUFFIX.pdf"
+    NETWORK="$GRAPHICS_DIR/nodes_$SUFFIX.png}"
+    # Python: nodes_"""+graphicTime+""".png}
+    if [ -f $NETWORK ]; then
+      ln -s $DEFAULT_GRAPHIC $NETWORK
+    fi
 else
     echo "Error: Filename '$FILE' does not contain a valid YYYYMMDDHHMMSS timestamp."
     echo "       Expected format example: '...-20250702210825.txt'"
