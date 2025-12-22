@@ -3,6 +3,8 @@
 # Compare files from development tree with original version
 # 20 October 2024
 # Modified 22 October to accept a parameter
+# Modified 23 October to walk tree and log diff commands
+# Find all changed files added 22 December 2025
 
 # Define your base directories
 DEVELOPED_DIR="/home/stevecos/contiki-ng"
@@ -14,86 +16,90 @@ echo "Comparing files between:"
 echo "Developed: $DEVELOPED_DIR"
 echo "Original:  $ORIGINAL_DIR"
 
-# Function to perform the kdiff3 comparison
+# Function to perform the comparison
+# Returns 0 if same, 1 if different, 2 if original missing
 compare_and_diff() {
-    echo "Command On Diff: $COMMAND_ON_DIFF"
-    echo "------------------------------------------------------------------"
     local original_file="$1"
     local developed_file="$2"
     local relative_path="$3"
 
     if [ -f "$original_file" ]; then
-        echo -n "--- Diffing: $relative_path --- "
         if diff -q "$original_file" "$developed_file" >/dev/null; then
-           echo "same"
+           echo "OK: $relative_path (No changes)"
+           return 0
         else
-           echo "Showing differences in kdiff3"
-
+           echo "CHANGED: $relative_path (Added to $TEMPFILE)"
+           return 1
         fi
     else
-        echo "--- WARNING: Original file not found for $relative_path (might be new) ---"
-        echo "Developed file: $developed_file"
-        echo "------------------------------------------------------------------"
+        echo "NEW: $relative_path (Original not found)"
+        return 2
     fi
 }
 
-
 # Check if a filename parameter is supplied
 if [ -n "$1" ]; then
+    # A parameter was supplied, assume it's a relative filename
+    PARAM_RELATIVE_PATH="$1"
+    PARAM_DEVELOPED_FILE="$DEVELOPED_DIR/$PARAM_RELATIVE_PATH"
+    PARAM_ORIGINAL_FILE="$ORIGINAL_DIR/$PARAM_RELATIVE_PATH"
 
     echo "Parameter supplied: '$PARAM_RELATIVE_PATH'. Attempting direct comparison."
 
-    if [ -f "$PARAM_DEVELOPED_FILE" ] && [ -f "$PARAM_ORIGINAL_FILE" ]; then
-        echo "Both files exist. Performing direct comparison."
-        # A parameter was supplied, assume it's a relative filename
-        PARAM_RELATIVE_PATH="$1"
-        PARAM_DEVELOPED_FILE="$DEVELOPED_DIR/$PARAM_RELATIVE_PATH"
-        PARAM_ORIGINAL_FILE="$ORIGINAL_DIR/$PARAM_RELATIVE_PATH"
-
-        COMMAND_ON_DIFF="kdiff3 $PARAM_DEVELOPED_FILE $PARAM_ORIGINAL_FILE > /dev/null 2>&1 &"
-
+    if [ -f "$PARAM_DEVELOPED_FILE" ]; then
         compare_and_diff "$PARAM_ORIGINAL_FILE" "$PARAM_DEVELOPED_FILE" "$PARAM_RELATIVE_PATH"
-        echo "Comparison complete."
+        RET=$?
+        if [ $RET -eq 1 ]; then
+            echo "kdiff3 $PARAM_ORIGINAL_FILE $PARAM_DEVELOPED_FILE &"
+            kdiff3 "$PARAM_ORIGINAL_FILE" "$PARAM_DEVELOPED_FILE" > /dev/null 2>&1 &
+        fi
     else
-        echo "ERROR: One or both specified files do not exist."
-        echo "Developed: $PARAM_DEVELOPED_FILE (Exists: $([ -f "$PARAM_DEVELOPED_FILE" ] && echo "yes" || echo "no"))"
-        echo "Original:  $PARAM_ORIGINAL_FILE (Exists: $([ -f "$PARAM_ORIGINAL_FILE" ] && echo "yes" || echo "no"))"
-        echo "Note that the path supplied by be relative from: $DEVELOPED_DIR"
-        echo "Exiting."
+        echo "ERROR: Developed file $PARAM_DEVELOPED_FILE does not exist."
         exit 1
     fi
 else
-    # No parameter supplied, proceed with the original logic (find files with 'hton')
-    echo No parameter supplied.
-    echo "See source $0 to enable logic to search for files containing specific text (such as 'hton')"
-    echo "before diffing each matching file (excluding 'rpl-lite')."
-    for i in {1..4} ; do echo ; done
+    # No parameter supplied, proceed with walking the directory
     echo "------------------------------------------------------------------"
-    echo
-    echo "Usage:"
-    echo "  $0 <relative file path and name>"
-    echo "Base folders:"
-    echo "  Original code:            $ORIGINAL_DIR"
-    echo "  Modified code to compare: $DEVELOPED_DIR"
-    echo "Remember that right-clicking on a file tab in vsCode enables you to 'Copy Relative Path' which might work in this script."
-    echo
-    echo "Continue with full list of changed files? (y/N)"
+    echo "Preparing to scan $DEVELOPED_DIR"
+    echo "Excluding 'rpl-lite' and '.git' directories."
+    echo "Press Enter to continue or Ctrl+C to abort..."
     read
-    if [[ "$REPLY" == "y" ]]; then
-            # Find files in your developed codebase
-       find "$DEVELOPED_DIR" -type f -exec grep -lE "hton" {} + | grep -v "rpl-lite" | while read -r DEVELOPED_FILE; do
-            # Get the relative path from the developed directory
-            RELATIVE_PATH="${DEVELOPED_FILE#$DEVELOPED_DIR/}"
+    # Initialize/Clear the temp file and make it executable
+    echo "#!/bin/bash" > "$TEMPFILE"
+    chmod +x "$TEMPFILE"
 
-            # Construct the path to the original file
-            ORIGINAL_FILE="$ORIGINAL_DIR/$RELATIVE_PATH"
+    # Walk the folder structure
+    # 1. find all files
+    # 2. exclude .git and rpl-lite
+    # 3. exclude build artifacts (.o, .d, .a)
+    find "$DEVELOPED_DIR" -type f \
+        -not -path '*/.*' \
+        -not -path '*rpl-lite*' \
+        -not -name "*.o" \
+        -not -name "*.d" \
+        -not -name "*.a" | while read -r DEVELOPED_FILE; do
 
-            PARAM_DEVELOPED_FILE="$DEVELOPED_DIR/$PARAM_RELATIVE_PATH"
-            PARAM_ORIGINAL_FILE="$ORIGINAL_DIR/$PARAM_RELATIVE_PATH"
-            COMMAND_ON_DIFF="echo ""kdiff3 $COMMAND_ON_DIFF"" > $TEMPFILE"
-            compare_and_diff "$ORIGINAL_FILE" "$DEVELOPED_FILE" "$RELATIVE_PATH"
-       done
-    fi
+        # Get the relative path from the developed directory
+        RELATIVE_PATH="${DEVELOPED_FILE#$DEVELOPED_DIR/}"
+
+        # Construct the path to the original file
+        ORIGINAL_FILE="$ORIGINAL_DIR/$RELATIVE_PATH"
+
+        # Check for differences
+        compare_and_diff "$ORIGINAL_FILE" "$DEVELOPED_FILE" "$RELATIVE_PATH"
+        RESULT=$?
+
+        # If files are different (Status 1), write kdiff3 command to file
+        if [ $RESULT -eq 1 ]; then
+            echo "kdiff3 \"$ORIGINAL_FILE\" \"$DEVELOPED_FILE\" &" >> "$TEMPFILE"
+        fi
+    done
+
+    echo "------------------------------------------------------------------"
+    echo "Scan Complete."
+    COUNT=$(grep -c "kdiff3" "$TEMPFILE")
+    echo "Found $COUNT changed files."
+    echo "To review changes, run: $TEMPFILE"
 fi
 
 echo "------------------------------------------------------------------"
