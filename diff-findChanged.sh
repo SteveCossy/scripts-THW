@@ -76,7 +76,7 @@ else
         -not -path '*/.*' \
         -not -path '*rpl-lite*' \
         -not -name "*.o" \
-        -not -name "*.d" \l
+        -not -name "*.d" \
         -not -name "*.a" | while read -r DEVELOPED_FILE; do
 
         # Get the relative path from the developed directory
@@ -101,6 +101,7 @@ else
     COUNT=$(grep -c "kdiff3" "$TEMPFILE")
     echo "Found $COUNT changed files."
     echo "To review changes, run: $TEMPFILE"
+    echo "To view file list in date order, run: sort -k 7 -r $TEMPFILE"
 fi
 
 echo "------------------------------------------------------------------"
