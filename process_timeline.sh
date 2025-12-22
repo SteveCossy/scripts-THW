@@ -97,8 +97,12 @@ echo "--> Step 3: Copying and renaming generated PDF to $SUMMARY_FILE_PDF"
 # Note: I removed the redundant `cp rpl_*.pdf ...` as the next two lines are more specific and safer.
 cp "$SUMMARY_FILE.pdf" "$SUMMARY_FILE_PDF"
 
-echo "--> Step 5: Opening PDF for review"
-okular "$SUMMARY_FILE_PDF" > /dev/null 2>&1 &
+if ! pgrep -f "$SUMMARY_FILE_PDF" > /dev/null; then
+  echo "--> Step 5: Opening PDF for review"
+  okular "$SUMMARY_FILE_PDF" > /dev/null 2>&1 &
+else
+  echo "--> Step 5: Checked - PDF is already open"
+fi
 
 echo ""
 echo "--> Script finished successfully!"
