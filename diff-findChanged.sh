@@ -37,11 +37,7 @@ compare_and_diff() {
     fi
 }
 
-# If a parameter was supplied, assume it's a relative filename, otherwise just use paths
-PARAM_RELATIVE_PATH="$1"
-PARAM_DEVELOPED_FILE="$DEVELOPED_DIR/$PARAM_RELATIVE_PATH"
-PARAM_ORIGINAL_FILE="$ORIGINAL_DIR/$PARAM_RELATIVE_PATH"
-COMMAND_ON_DIFF="$PARAM_DEVELOPED_FILE $PARAM_ORIGINAL_FILE > /dev/null 2>&1 &"
+
 # Check if a filename parameter is supplied
 if [ -n "$1" ]; then
 
@@ -49,7 +45,13 @@ if [ -n "$1" ]; then
 
     if [ -f "$PARAM_DEVELOPED_FILE" ] && [ -f "$PARAM_ORIGINAL_FILE" ]; then
         echo "Both files exist. Performing direct comparison."
-        COMMAND_ON_DIFF="kdiff3 $COMMAND_ON_DIFF"
+        # A parameter was supplied, assume it's a relative filename
+        PARAM_RELATIVE_PATH="$1"
+        PARAM_DEVELOPED_FILE="$DEVELOPED_DIR/$PARAM_RELATIVE_PATH"
+        PARAM_ORIGINAL_FILE="$ORIGINAL_DIR/$PARAM_RELATIVE_PATH"
+
+        COMMAND_ON_DIFF="kdiff3 $PARAM_DEVELOPED_FILE $PARAM_ORIGINAL_FILE > /dev/null 2>&1 &"
+
         compare_and_diff "$PARAM_ORIGINAL_FILE" "$PARAM_DEVELOPED_FILE" "$PARAM_RELATIVE_PATH"
         echo "Comparison complete."
     else
@@ -73,12 +75,11 @@ else
     echo "Base folders:"
     echo "  Original code:            $ORIGINAL_DIR"
     echo "  Modified code to compare: $DEVELOPED_DIR"
-    echo "Remember that right-clicking on a file tab in vsCode enable you to 'Copy Relative Path' which works in this script."
+    echo "Remember that right-clicking on a file tab in vsCode enables you to 'Copy Relative Path' which might work in this script."
     echo
     echo "Continue with full list of changed files? (y/N)"
     read
     if [[ "$REPLY" == "y" ]]; then
-        COMMAND_ON_DIFF="echo ""kdiff3 $COMMAND_ON_DIFF"" > $TEMPFILE"
             # Find files in your developed codebase
        find "$DEVELOPED_DIR" -type f -exec grep -lE "hton" {} + | grep -v "rpl-lite" | while read -r DEVELOPED_FILE; do
             # Get the relative path from the developed directory
@@ -87,6 +88,9 @@ else
             # Construct the path to the original file
             ORIGINAL_FILE="$ORIGINAL_DIR/$RELATIVE_PATH"
 
+            PARAM_DEVELOPED_FILE="$DEVELOPED_DIR/$PARAM_RELATIVE_PATH"
+            PARAM_ORIGINAL_FILE="$ORIGINAL_DIR/$PARAM_RELATIVE_PATH"
+            COMMAND_ON_DIFF="echo ""kdiff3 $COMMAND_ON_DIFF"" > $TEMPFILE"
             compare_and_diff "$ORIGINAL_FILE" "$DEVELOPED_FILE" "$RELATIVE_PATH"
        done
     fi
