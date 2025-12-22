@@ -7,6 +7,8 @@
 # Define your base directories
 DEVELOPED_DIR="/home/stevecos/contiki-ng"
 ORIGINAL_DIR="/local/scratch/stevecos/ben/contiki-ng"
+# Where to put the file holding kdiff3 commands
+TEMPFILE="/tmp/SteveCosDiffs.sh"
 
 echo "Comparing files between:"
 echo "Developed: $DEVELOPED_DIR"
@@ -35,13 +37,13 @@ compare_and_diff() {
     fi
 }
 
+# If a parameter was supplied, assume it's a relative filename, otherwise just use paths
+PARAM_RELATIVE_PATH="$1"
+PARAM_DEVELOPED_FILE="$DEVELOPED_DIR/$PARAM_RELATIVE_PATH"
+PARAM_ORIGINAL_FILE="$ORIGINAL_DIR/$PARAM_RELATIVE_PATH"
+COMMAND_ON_DIFF="$PARAM_DEVELOPED_FILE $PARAM_ORIGINAL_FILE > /dev/null 2>&1 &"
 # Check if a filename parameter is supplied
 if [ -n "$1" ]; then
-    # A parameter was supplied, assume it's a relative filename
-    PARAM_RELATIVE_PATH="$1"
-    PARAM_DEVELOPED_FILE="$DEVELOPED_DIR/$PARAM_RELATIVE_PATH"
-    PARAM_ORIGINAL_FILE="$ORIGINAL_DIR/$PARAM_RELATIVE_PATH"
-    COMMAND_ON_DIFF="$PARAM_DEVELOPED_FILE $PARAM_ORIGINAL_FILE > /dev/null 2>&1 &"
 
     echo "Parameter supplied: '$PARAM_RELATIVE_PATH'. Attempting direct comparison."
 
@@ -71,13 +73,13 @@ else
     echo "Base folders:"
     echo "  Original code:            $ORIGINAL_DIR"
     echo "  Modified code to compare: $DEVELOPED_DIR"
-    echo "Remember that right-clicking on a file tab in vsCode enables you to 'Copy Realative Path' which works in this script."
+    echo "Remember that right-clicking on a file tab in vsCode enable you to 'Copy Relative Path' which works in this script."
     echo
     echo "Continue with full list of changed files? (y/N)"
     read
     if [[ "$REPLY" == "y" ]]; then
+        COMMAND_ON_DIFF="echo ""kdiff3 $COMMAND_ON_DIFF"" > $TEMPFILE"
             # Find files in your developed codebase
-        COMMAND_ON_DIFF="echo $COMMAND_ON_DIFF"
        find "$DEVELOPED_DIR" -type f -exec grep -lE "hton" {} + | grep -v "rpl-lite" | while read -r DEVELOPED_FILE; do
             # Get the relative path from the developed directory
             RELATIVE_PATH="${DEVELOPED_FILE#$DEVELOPED_DIR/}"
